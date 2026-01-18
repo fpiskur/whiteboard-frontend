@@ -1,4 +1,5 @@
 import type { Handle } from '@sveltejs/kit';
+import { CORS_ORIGIN } from '$env/static/private';
 
 export const handle: Handle = async ({ resolve, event }) => {
 	// Handle preflight requests for CORS
@@ -6,7 +7,7 @@ export const handle: Handle = async ({ resolve, event }) => {
 		return new Response(null, {
 			headers: {
 				'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, PATCH, OPTIONS',
-				'Access-Control-Allow-Origin': '*',
+				'Access-Control-Allow-Origin': CORS_ORIGIN,
 				'Access-Control-Allow-Headers': 'Content-Type, Authorization',
 			}
 		});
@@ -15,7 +16,7 @@ export const handle: Handle = async ({ resolve, event }) => {
 	const response = await resolve(event);
 
 	// Add CORS headers to all responses
-	response.headers.append('Access-Control-Allow-Origin', '*');
+	response.headers.append('Access-Control-Allow-Origin', CORS_ORIGIN);
 
 	return response;
 };

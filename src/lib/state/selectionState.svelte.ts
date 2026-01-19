@@ -1,3 +1,5 @@
+import { SvelteSet } from 'svelte/reactivity';
+
 export type SelectionBox = {
     isBoxSelecting: boolean;
     boxStart: { x: number; y: number } | null;
@@ -5,12 +7,12 @@ export type SelectionBox = {
 };
 
 export type SelectionState = {
-    selectedIds: Set<number>;
+    selectedIds: SvelteSet<number>;
     box: SelectionBox;
 };
 
 export const selectionState = $state<SelectionState>({
-    selectedIds: new Set(),
+    selectedIds: new SvelteSet(),
     box: {
         isBoxSelecting: false,
         boxStart: null,

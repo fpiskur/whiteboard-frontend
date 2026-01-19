@@ -1,7 +1,18 @@
 import { PUBLIC_API_URL } from '$env/static/public';
-import type { Note, CreateNoteData, UpdateNoteData, ApiError } from '$lib/types';
+import type { NoteAPIResponse, Note, CreateNoteData, UpdateNoteData, ApiError } from '$lib/types';
 
 const API_BASE = PUBLIC_API_URL;
+
+// Helper to normalize API response (because decimals are returned as string)
+function normalizeNote(apiNote: NoteAPIResponse): Note {
+    return {
+        ...apiNote,
+        pos_x: Number(apiNote.pos_x),
+        pos_y: Number(apiNote.pos_y),
+        width: Number(apiNote.width),
+        height: Number(apiNote.height)
+    };
+}
 
 class ApiClient {
     private async request<T>(
@@ -49,28 +60,32 @@ class ApiClient {
 
     // Get all notes
     async fetchNotes(): Promise<Note[]> {
-        return this.request<Note[]>('/notes');
+        const response = await this.request<NoteAPIResponse[]>('/notes');
+        return response.map(normalizeNote);
     }
 
     // Get single note
     async fetchNote(id: number): Promise<Note> {
-        return this.request<Note>(`/notes/${id}`);
+        const response = await this.request<NoteAPIResponse>(`/notes/${id}`);
+        return normalizeNote(response);
     }
 
     // Create note
     async createNote(data: CreateNoteData): Promise<Note> {
-        return this.request<Note>('/notes', {
+        const response = await this.request<NoteAPIResponse>('/notes', {
             method: 'POST',
             body: JSON.stringify(data),
         });
+        return normalizeNote(response);
     }
 
     // Update note
     async updateNote(id: number, data: UpdateNoteData): Promise<Note> {
-        return this.request<Note>(`/notes/${id}`, {
+        const response = await this.request<NoteAPIResponse>(`/notes/${id}`, {
             method: 'PUT',
             body: JSON.stringify(data),
         });
+        return normalizeNote(response);
     }
 
     // Delete note
@@ -82,10 +97,11 @@ class ApiClient {
 
     // Batch update (pos_x, pos_y)
     async batchUpdateNotes(updates: Array<{ id: number; data: UpdateNoteData }>): Promise<Note[]> {
-        return this.request<Note[]>('/notes/bulk_update', {
+        const response = await this.request<NoteAPIResponse[]>('/notes/bulk_update', {
             method: 'PATCH',
             body: JSON.stringify({ updates }),
         });
+        return response.map(normalizeNote);
     }
 
     // Batch delete
@@ -117,7 +133,7 @@ export async function updateNote(id: number, data: UpdateNoteData) {
     return api.updateNote(id, data);
 }
 
-export async function delteNote(id: number) {
+export async function deleteNote(id: number) {
     return api.deleteNote(id);
 }
 

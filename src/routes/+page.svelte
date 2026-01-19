@@ -1,45 +1,23 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
-	import { fetchNotes } from '$lib/api/rails-api';
-	import type { Note, ApiError } from '$lib/types';
+  import { onMount } from 'svelte';
+  import { notesState, loadNotes } from '$lib/state/notesState.svelte';
+  import { camera, cameraRender } from '$lib/state/cameraState.svelte';
+  import { selectionState, keyboardState } from '$lib/state/selectionState.svelte';
 
-	let notes = $state<Note[]>([]);
-	let loading = $state(true);
-	let error = $state<string | null>(null);
-
-	onMount(async () => {
-		try {
-			loading = true;
-			error = null;
-			notes = await fetchNotes();
-			console.log('API connected! Notes: ', notes);
-		} catch (err) {
-			const apiError = err as ApiError;
-			error = apiError.message;
-			console.error('API error: ', apiError);
-		} finally {
-			loading = false;
-		}
-	});
+  onMount(() => {
+    loadNotes();
+  });
 </script>
 
 <div>
 	<h1>API Connection Test</h1>
 
-	{#if loading}
-		<p>Loading notes...</p>
-	{:else if error}
-		<p style="color: red;">Error: {error}</p>
-		<p>Make sure your Rails server is running at {import.meta.env.PUBLIC_API_URL}</p>
+	<!-- Example usage (no actual UI yet) -->
+	{#if notesState.loading}
+	  <p>Loading notes…</p>
+	{:else if notesState.error}
+	  <p style="color:red;">{notesState.error}</p>
 	{:else}
-		<p>Successfully connected to API</p>
-		<p>Found {notes.length} notes</p>
-		{#if notes.length > 0}
-			<ul>
-				{#each notes as note}
-					<li>Note #{note.id}: {note.content || '(empty)'}</li>
-				{/each}
-			</ul>
-		{/if}
+	  <p>Loaded {notesState.items.length} notes.</p>
 	{/if}
 </div>

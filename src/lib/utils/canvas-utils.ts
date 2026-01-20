@@ -16,14 +16,6 @@ export function screenToWorld(
         x: (screenX - camera.x) / camera.scale,
         y: (screenY - camera.y) / camera.scale
     };
-    //NOTE: The original calculation was done like this in the vanilla version:
-    //  const rect = viewport.getBoundingClientRect();
-    //  return {
-    //    x: (screenX - rect.left - state.camera.x) / state.camera.scale,
-    //    y: (screenY - rect.top - state.camera.y) / state.camera.scale
-    //  };
-    //The reasoning behind including 'rect' is that the 'viewport' element might be offset by the sidebar
-    //so this will have to be added if the sidebar that is present in the document flow is introduced
 }
 
 /**
@@ -42,7 +34,4 @@ export function worldToScreen(
         x: worldX * camera.scale + camera.x,
         y: worldY * camera.scale + camera.y
     };
-    // NOTE: See the comment at the bottom of screenToWorld function and adjust accordingly
-    // x: worldX * camera.scale + camera.x + rect.left,
-    // y: worldY * camera.scale + camera.y + rect.top
 }

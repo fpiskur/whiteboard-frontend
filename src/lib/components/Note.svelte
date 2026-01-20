@@ -1,8 +1,10 @@
 <script lang="ts">
     import type { Note as NoteType } from '$lib/types';
     import { camera } from '$lib/state/cameraState.svelte';
-    import { selectionState } from '$lib/state/selectionState.svelte';
+    import { selectionState, keyboardState } from '$lib/state/selectionState.svelte';
+    import { dragState, clickState } from '$lib/state/interactionState.svelte';
     import { COLORS, BORDER } from '$lib/state/constants';
+    import { screenToWorld } from '$lib/utils/canvas-utils';
 
     let { note }: { note: NoteType } = $props();
 
@@ -27,11 +29,82 @@
             ? `0 0 0 ${shadowWidthPx}px ${COLORS.SELECTION}, 0 2px 8px rgba(0,0,0,0.1)`
             : `0 0 0 ${borderWidthPx}px ${COLORS.NOTE_BORDER}, 0 2px 8px rgba(0,0,0,0.1)`
     );
+
+    function handleMouseDown(e: MouseEvent) {
+        if (e.button !== 0) return;  // Only left click allowed
+        if (keyboardState.space) return;  // Don't select when panning
+
+        // Check if clicking resize handle
+        const target = e.target as HTMLElement;
+        if (target.closest('.resize-handle')) {
+            // TODO: Handle resize in future step
+            return;
+        }
+
+        e.stopPropagation();  // Prevent canvas background selection
+
+        if (keyboardState.ctrl) {
+            // Ctrl+click: toggle selection (don't start drag yet)
+            clickState.ctrlClickTarget = note.id;
+            return;
+        }
+
+        // Track if this note was already selected (for click-to-isolate)
+        if (isSelected && selectionState.selectedIds.size > 1) {
+            clickState.clickedNoteId = note.id;
+        } else {
+            clickState.clickedNoteId = null;
+        }
+
+        // If not already selected, clear selection and select this note
+        if (!isSelected) {
+            selectionState.selectedIds.clear();
+            selectionState.selectedIds.add(note.id);
+        } else {
+            // Already selected, just endure it's in the set
+            selectionState.selectedIds.add(note.id)
+        }
+
+        // Start drag
+        const rect = (e.currentTarget as HTMLElement).closest('.viewport')?.getBoundingClientRect();
+        if (!rect) return;
+
+        const mouseWorld = screenToWorld(
+            e.clientX - rect.left,
+            e.clientY - rect.top,
+            camera
+        );
+
+        dragState.targetId = note.id;
+        dragState.offset = {
+            x: mouseWorld.x - note.pos_x,
+            y: mouseWorld.y - note.pos_y
+        };
+
+        // Store relative offsets for all selected notes (for multi-drag)
+        dragState.relativeOffsets.clear();
+        selectionState.selectedIds.forEach(id => {
+            if (id === note.id) return;
+
+            // Find the note in notesState
+            const selectedNote = (window as any).__notes?.find((n: NoteType) => n.id === id);
+            if (selectedNote) {
+                dragState.relativeOffsets.set(id, {
+                    x: selectedNote.pos_x - note.pos_x,
+                    y: selectedNote.pos_y - note.pos_y
+                });
+            }
+        });
+    }
 </script>
 
+<!-- role, tabindex and aria-label are added for a11y compliance -->
 <div
     class="note"
     class:selected={isSelected}
+    role="button"
+    tabindex="0"
+    aria-label="Draggable note: {note.content.substring(0, 50)}"
     style="
         --tx: {note.pos_x}px;
         --ty: {note.pos_y}px;
@@ -40,6 +113,7 @@
         background-color: {note.bg_color};
         box-shadow: {boxShadow};
     "
+    onmousedown={handleMouseDown}
 >
     <div class="note-content">{note.content}</div>
     <div class="resize-handle"></div>

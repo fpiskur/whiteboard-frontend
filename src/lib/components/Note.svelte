@@ -2,7 +2,7 @@
     import type { Note as NoteType } from '$lib/types';
     import { camera } from '$lib/state/cameraState.svelte';
     import { selectionState, keyboardState } from '$lib/state/selectionState.svelte';
-    import { dragState, clickState } from '$lib/state/interactionState.svelte';
+    import { mouseState, dragState, clickState } from '$lib/state/interactionState.svelte';
     import { COLORS, BORDER } from '$lib/state/constants';
     import { screenToWorld } from '$lib/utils/canvas-utils';
 
@@ -43,6 +43,18 @@
 
         e.stopPropagation();  // Prevent canvas background selection
 
+        // Set mouse down state
+        mouseState.isDown = true;
+
+        // Capture mouse down position for all note clicks
+        const rect = (e.currentTarget as HTMLElement).closest('.viewport')?.getBoundingClientRect();
+        if (!rect) return;
+
+        mouseState.downPos.x = e.clientX - rect.left;
+        mouseState.downPos.y = e.clientY - rect.top;
+        mouseState.pos.x = mouseState.downPos.x;
+        mouseState.pos.y = mouseState.downPos.y;
+
         if (keyboardState.ctrl) {
             // Ctrl+click: toggle selection (don't start drag yet)
             clickState.ctrlClickTarget = note.id;
@@ -60,18 +72,12 @@
         if (!isSelected) {
             selectionState.selectedIds.clear();
             selectionState.selectedIds.add(note.id);
-        } else {
-            // Already selected, just endure it's in the set
-            selectionState.selectedIds.add(note.id)
         }
 
         // Start drag
-        const rect = (e.currentTarget as HTMLElement).closest('.viewport')?.getBoundingClientRect();
-        if (!rect) return;
-
         const mouseWorld = screenToWorld(
-            e.clientX - rect.left,
-            e.clientY - rect.top,
+            mouseState.pos.x,
+            mouseState.pos.y,
             camera
         );
 

@@ -1,10 +1,12 @@
 <script lang="ts">
     import type { Note as NoteType } from '$lib/types';
     import { camera } from '$lib/state/cameraState.svelte';
+    import { notesState } from '$lib/state/notesState.svelte';
     import { selectionState, keyboardState } from '$lib/state/selectionState.svelte';
     import { mouseState, dragState, clickState, panState } from '$lib/state/interactionState.svelte';
     import { COLORS, BORDER } from '$lib/state/constants';
     import { screenToWorld } from '$lib/utils/canvas-utils';
+    import { getViewportRect, setMouseDownPosition } from '$lib/utils/viewport-utils';
 
     let { note }: { note: NoteType } = $props();
 
@@ -53,17 +55,13 @@
 
         e.stopPropagation();  // Prevent canvas background selection
 
-        // Set mouse down state
-        mouseState.isDown = true;
-
-        // Capture mouse down position for all note clicks
-        const rect = (e.currentTarget as HTMLElement).closest('.viewport')?.getBoundingClientRect();
+        // Get viewport rect and update mouse state
+        const rect = getViewportRect(e.currentTarget as HTMLElement);
         if (!rect) return;
 
-        mouseState.downPos.x = e.clientX - rect.left;
-        mouseState.downPos.y = e.clientY - rect.top;
-        mouseState.pos.x = mouseState.downPos.x;
-        mouseState.pos.y = mouseState.downPos.y;
+        // Set mouse down state
+        mouseState.isDown = true;
+        setMouseDownPosition(e, mouseState, rect);
 
         if (keyboardState.ctrl) {
             // Ctrl+click: toggle selection (don't start drag yet)
@@ -85,11 +83,7 @@
         }
 
         // Start drag
-        const mouseWorld = screenToWorld(
-            mouseState.pos.x,
-            mouseState.pos.y,
-            camera
-        );
+        const mouseWorld = screenToWorld(mouseState.pos.x, mouseState.pos.y, camera);
 
         dragState.targetId = note.id;
         dragState.offset = {
@@ -103,7 +97,7 @@
             if (id === note.id) return;
 
             // Find the note in notesState
-            const selectedNote = (window as any).__notes?.find((n: NoteType) => n.id === id);
+            const selectedNote = notesState.items.find((n: NoteType) => n.id === id);
             if (selectedNote) {
                 dragState.relativeOffsets.set(id, {
                     x: selectedNote.pos_x - note.pos_x,

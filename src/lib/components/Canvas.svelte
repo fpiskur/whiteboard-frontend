@@ -5,6 +5,7 @@
     import { selectionState, keyboardState } from '$lib/state/selectionState.svelte';
     import { mouseState, dragState, panState, clickState } from '$lib/state/interactionState.svelte';
     import { screenToWorld } from '$lib/utils/canvas-utils';
+    import { setMouseDownPosition, setMousePosition } from '$lib/utils/viewport-utils';
     import { INTERACTION } from '$lib/state/constants';
     import GridCanvas from './GridCanvas.svelte';
     import OverlayCanvas from './OverlayCanvas.svelte';
@@ -12,11 +13,6 @@
 
     let viewportEl: HTMLDivElement;
     let animationFrameId: number | null = null;
-
-    // NOTE: Expose notes to window for drag offset calculaten (temporary solution)
-    $effect(() => {
-        (window as any).__notes = notesState.items;
-    });
 
     onMount(async () => {
         await loadNotes();
@@ -169,10 +165,7 @@
         }
 
         mouseState.isDown = true;
-        mouseState.pos.x = e.clientX - rect.left;
-        mouseState.pos.y = e.clientY - rect.top;
-        mouseState.downPos.x = mouseState.pos.x;
-        mouseState.downPos.y = mouseState.pos.y;
+        setMouseDownPosition(e, mouseState, rect);
 
         // Space+drag panning - handle before other interactions
         if (keyboardState.space) {
@@ -199,8 +192,7 @@
         if (!viewportEl) return;
 
         const rect = viewportEl.getBoundingClientRect();
-        mouseState.pos.x = e.clientX - rect.left;
-        mouseState.pos.y = e.clientY - rect.top;
+        setMousePosition(e, mouseState, rect);
 
         // Handle Space+drag panning
         if (keyboardState.space && panState.isDraggingCanvas) {

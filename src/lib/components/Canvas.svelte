@@ -1,7 +1,7 @@
 <script lang="ts">
     import { onMount } from 'svelte';
     import { camera, cameraRender } from '$lib/state/cameraState.svelte';
-    import { notesState, loadNotes, updateNoteLocal, batchUpdateNotesLocal } from '$lib/state/notesState.svelte';
+    import { notesState, loadNotes, batchUpdateNotesLocal } from '$lib/state/notesState.svelte';
     import { selectionState, keyboardState } from '$lib/state/selectionState.svelte';
     import { mouseState, dragState, panState, clickState } from '$lib/state/interactionState.svelte';
     import { screenToWorld } from '$lib/utils/canvas-utils';
@@ -63,7 +63,7 @@
         mouseState.downPos.x = mouseState.pos.x;
         mouseState.downPos.y = mouseState.pos.y;
 
-        // Background click - start box selection if not holding space
+        // Background click - prepare for box selection
         if (e.target === viewportEl && !keyboardState.space) {
             // Clear selection if no modifiers
             if (!keyboardState.ctrl && !keyboardState.shift && selectionState.selectedIds.size > 0) {
@@ -71,10 +71,8 @@
             }
 
             const worldPos = screenToWorld(mouseState.pos.x, mouseState.pos.y, camera);
-            selectionState.box.isBoxSelecting = true;
             selectionState.box.boxStart = { x: worldPos.x, y: worldPos.y };
             selectionState.box.boxEnd = { x: worldPos.x, y: worldPos.y };
-            cameraRender.needsRender = true;
         }
     }
 
@@ -112,6 +110,11 @@
                     }
                 });
             }
+        }
+
+        // Start box selecting only when mouse moves after background click
+        if (selectionState.box.boxStart && !selectionState.box.isBoxSelecting && !dragState.targetId) {
+            selectionState.box.isBoxSelecting = true;
         }
 
         // Update selection box

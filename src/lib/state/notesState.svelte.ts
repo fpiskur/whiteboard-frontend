@@ -1,5 +1,5 @@
 import type { Note, CreateNoteData, UpdateNoteData, ApiError } from '$lib/types';
-import { fetchNotes, createNote, updateNote, deleteNote } from '$lib/api/rails-api';
+import { fetchNotes, createNote, updateNote, batchUpdateNotes, deleteNote } from '$lib/api/rails-api';
 
 type NotesState = {
     items: Note[];
@@ -38,6 +38,18 @@ export async function updateNoteLocal(id: number, data:UpdateNoteData) {
     if (idx !== -1) {
         notesState.items[idx] = updated;
     }
+}
+
+export async function batchUpdateNotesLocal(updates: Array<{ id: number; data: UpdateNoteData }>) {
+    const updatedNotes = await batchUpdateNotes(updates);
+
+    // Update local state with all returned notes
+    updatedNotes.forEach(updated => {
+        const idx = notesState.items.findIndex((n) => n.id === updated.id);
+        if (idx !== -1) {
+            notesState.items[idx] = updated;
+        }
+    });
 }
 
 export async function deleteNoteLocal(id: number) {

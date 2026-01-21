@@ -1,7 +1,7 @@
 <script lang="ts">
     import { onMount } from 'svelte';
     import { camera, cameraRender } from '$lib/state/cameraState.svelte';
-    import { notesState, loadNotes, updateNoteLocal } from '$lib/state/notesState.svelte';
+    import { notesState, loadNotes, updateNoteLocal, batchUpdateNotesLocal } from '$lib/state/notesState.svelte';
     import { selectionState, keyboardState } from '$lib/state/selectionState.svelte';
     import { mouseState, dragState, panState, clickState } from '$lib/state/interactionState.svelte';
     import { screenToWorld } from '$lib/utils/canvas-utils';
@@ -148,14 +148,17 @@
         // End drag - sync positions to backend
         if (dragState.targetId !== null && !wasClick) {
             // Update all dragged notes in backend
-            const promises: Promise<void>[] = [];
-            selectionState.selectedIds.forEach(id => {
+            const updates = Array.from(selectionState.selectedIds).map(id => {
                 const note = notesState.items.find(n => n.id === id);
-                if (note) {
-                    promises.push(updateNoteLocal(id, { pos_x: note.pos_x, pos_y: note.pos_y }));
-                }
+                return {
+                    id,
+                    data: { pos_x: note!.pos_x, pos_y: note!.pos_y }
+                };
             });
-            Promise.all(promises).catch(err => console.error('Failed to update note positions: ', err));
+
+            batchUpdateNotesLocal(updates).catch(err =>
+                console.error('Failed to update note positions: ', err)
+            );
         }
 
         // End box selection

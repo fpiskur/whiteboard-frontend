@@ -63,6 +63,14 @@
         mouseState.downPos.x = mouseState.pos.x;
         mouseState.downPos.y = mouseState.pos.y;
 
+        // Space+drag panning - handle before other interactions
+        if (keyboardState.space) {
+            panState.isDraggingCanvas = true;
+            panState.dragStart.x = e.clientX - camera.x;
+            panState.dragStart.y = e.clientY - camera.y;
+            return;  // Don't handle box selection
+        }
+
         // Background click - prepare for box selection
         if (e.target === viewportEl && !keyboardState.space) {
             // Clear selection if no modifiers
@@ -83,7 +91,22 @@
         mouseState.pos.x = e.clientX - rect.left;
         mouseState.pos.y = e.clientY - rect.top;
 
+        // Handle Space+drag panning
+        if (keyboardState.space && panState.isDraggingCanvas) {
+            camera.x = e.clientX - panState.dragStart.x;
+            camera.y = e.clientY - panState.dragStart.y;
+
+            cameraRender.needsRender = true;
+            cameraRender.needsGridRender = true;
+            return;
+        }
+
         if (!mouseState.isDown) return;
+
+        // Handle active panning without space key held
+        if (panState.isDraggingCanvas && !keyboardState.space) {
+            panState.isDraggingCanvas = false;
+        }
 
         // Update dragged notes positions
         if (dragState.targetId !== null) {
@@ -171,6 +194,11 @@
             selectionState.box.boxStart = null;
             selectionState.box.boxEnd = null;
             cameraRender.needsRender = true;
+        }
+
+        // End panning
+        if (panState.isDraggingCanvas) {
+            panState.isDraggingCanvas = false;
         }
 
         // Cleanup

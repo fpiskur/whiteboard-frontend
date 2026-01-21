@@ -388,7 +388,7 @@
     role="application"
     tabindex="0"
     aria-label="Interactive canvas workspace"
-    class:space-drag={keyboardState.space}
+    class:space-drag={keyboardState.space && !dragState.targetId && !selectionState.box.isBoxSelecting}
     class:middle-mouse-pan={panState.isMiddleMouse}
     class:box-selecting={selectionState.box.isBoxSelecting}
     onmousedown={handleMouseDown}

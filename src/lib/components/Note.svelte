@@ -2,7 +2,7 @@
     import type { Note as NoteType } from '$lib/types';
     import { camera } from '$lib/state/cameraState.svelte';
     import { selectionState, keyboardState } from '$lib/state/selectionState.svelte';
-    import { mouseState, dragState, clickState } from '$lib/state/interactionState.svelte';
+    import { mouseState, dragState, clickState, panState } from '$lib/state/interactionState.svelte';
     import { COLORS, BORDER } from '$lib/state/constants';
     import { screenToWorld } from '$lib/utils/canvas-utils';
 
@@ -31,6 +31,16 @@
     );
 
     function handleMouseDown(e: MouseEvent) {
+        // Exit middle mouse panning on any mouse button press
+        if (panState.isMiddleMouse) {
+            panState.isMiddleMouse = false;
+            // If it was middle mouse button itself, just exit
+            if (e.button === 1) {
+                e.preventDefault();
+                return;
+            }
+        }
+
         if (e.button !== 0) return;  // Only left click allowed
         if (keyboardState.space) return;  // Don't select when panning
 

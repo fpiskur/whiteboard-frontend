@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { onMount } from 'svelte';
+    import { onMount, onDestroy } from 'svelte';
     import { camera, cameraRender } from '$lib/state/cameraState.svelte';
     import { notesState, loadNotes, batchUpdateNotesLocal } from '$lib/state/notesState.svelte';
     import { selectionState, keyboardState } from '$lib/state/selectionState.svelte';
@@ -11,6 +11,7 @@
     import NotesLayer from './NotesLayer.svelte';
 
     let viewportEl: HTMLDivElement;
+    let animationFrameId: number | null = null;
 
     // NOTE: Expose notes to window for drag offset calculaten (temporary solution)
     $effect(() => {
@@ -20,6 +21,60 @@
     onMount(async () => {
         await loadNotes();
     });
+
+    // ===== RENDER LOOP (Hybrid Approach) =====
+    function updateMiddleMousePan() {
+        if(!panState.isMiddleMouse) return;
+
+        // Calculate distance and direction from anchor to current mouse
+        const dx = mouseState.pos.x - panState.middleMouseAnchor.x;
+        const dy = mouseState.pos.y - panState.middleMouseAnchor.y;
+        const distance = Math.sqrt(dx * dx + dy * dy);
+
+        // Dead zone - don't pan if too close to anchor
+        if (distance < INTERACTION.MIDDLE_MOUSE.DEAD_ZONE) return;
+
+        // Calculate speed based on distance (clamped to max distance)
+        const clampedDistance = Math.min(distance, INTERACTION.MIDDLE_MOUSE.MAX_DISTANCE);
+        const speedFactor = clampedDistance / INTERACTION.MIDDLE_MOUSE.MAX_DISTANCE;
+        const speed = speedFactor * INTERACTION.MIDDLE_MOUSE.MAX_SPEED;
+
+        // Normalize direction and apply speed
+        const dirX = dx / distance;
+        const dirY = dy / distance;
+
+        // Pan camera in mouse direction
+        camera.x -= dirX * speed;
+        camera.y -= dirY * speed;
+
+        cameraRender.needsRender = true;
+        cameraRender.needsGridRender = true;
+    }
+
+    function renderLoop() {
+        let needsContinue = false;
+
+        // Continuous aniumations that need RAF
+        if (panState.isMiddleMouse) {
+            updateMiddleMousePan();
+            needsContinue = true;
+        }
+
+        // TODO: Add auto-pan during drag here later
+
+        if (needsContinue) {
+            animationFrameId = requestAnimationFrame(renderLoop);
+        } else {
+            animationFrameId = null;
+        }
+    }
+
+    function startRenderLoop() {
+        if (animationFrameId === null) {
+            animationFrameId = requestAnimationFrame(renderLoop);
+        }
+    }
+    // ===== /RENDER LOOP =====
 
     // Keyboard state tracking
     function handleKeyDown(e: KeyboardEvent) {
@@ -55,9 +110,29 @@
     function handleMouseDown(e: MouseEvent) {
         if (!viewportEl) return;
 
-        mouseState.isDown = true;
-
         const rect = viewportEl.getBoundingClientRect();
+
+        // Exit middle mouse panning on any mouse button press
+        if (panState.isMiddleMouse) {
+            panState.isMiddleMouse = false;
+            // If it was middle button itself, prevent default and return
+            if (e.button === 1) {
+                e.preventDefault();
+                return;
+            }
+        }
+
+        // Middle mouse button - start joystick-style panning
+        if (e.button === 1) {
+            e.preventDefault();
+            panState.isMiddleMouse = true;
+            panState.middleMouseAnchor.x = e.clientX - rect.left;
+            panState.middleMouseAnchor.y = e.clientY - rect.top;
+            startRenderLoop();
+            return;
+        }
+
+        mouseState.isDown = true;
         mouseState.pos.x = e.clientX - rect.left;
         mouseState.pos.y = e.clientY - rect.top;
         mouseState.downPos.x = mouseState.pos.x;
@@ -250,6 +325,14 @@
             notesInBox.forEach(id => selectionState.selectedIds.add(id));
         }
     }
+
+    // Cleanup RAF on component unmount
+    onDestroy(() => {
+        if (animationFrameId !== null) {
+            cancelAnimationFrame(animationFrameId);
+            animationFrameId = null;
+        }
+    })
 </script>
 
 <svelte:window on:keydown={handleKeyDown} on:keyup={handleKeyUp} on:mousemove={handleMouseMove} on:mouseup={handleMouseUp} />
@@ -269,8 +352,8 @@
     onmousedown={handleMouseDown}
 >
     <GridCanvas />
-    <OverlayCanvas />
     <NotesLayer />
+    <OverlayCanvas />
 </div>
 
 <style>
@@ -306,6 +389,10 @@
 
     .viewport.space-drag:active :global(.resize-handle) {
         cursor: grabbing !important;
+    }
+
+    .viewport.middle-mouse-pan {
+        cursor: all-scroll !important;
     }
 
     .viewport.middle-mouse-pan :global(.note) {

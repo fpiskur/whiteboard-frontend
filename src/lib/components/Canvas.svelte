@@ -1,6 +1,6 @@
 <script lang="ts">
     import { onMount, onDestroy } from 'svelte';
-    import { camera, cameraRender } from '$lib/state/cameraState.svelte';
+    import { camera, cameraRender, clampScale } from '$lib/state/cameraState.svelte';
     import { notesState, loadNotes, batchUpdateNotesLocal } from '$lib/state/notesState.svelte';
     import { selectionState, keyboardState } from '$lib/state/selectionState.svelte';
     import { mouseState, dragState, panState, clickState } from '$lib/state/interactionState.svelte';
@@ -76,6 +76,37 @@
     }
     // ===== /RENDER LOOP =====
 
+    let zoomTimeout: number | null = null;
+    function handleWheel(e: WheelEvent) {
+        if (!e.ctrlKey) return;
+        e.preventDefault();
+
+        // Get cursor position in world coordinates before zoom
+        const pos = screenToWorld(e.clientX, e.clientY, camera);
+
+        // Zoom factor: 0.9 for zoom out, 1.1 for zoom in
+        const factor = e.deltaY > 0 ? 0.9 : 1.1;
+        const newScale = clampScale(camera.scale * factor);
+
+        // Update camera to zoom toward cursor position
+        camera.scale = newScale;
+        camera.x = e.clientX - (pos.x * camera.scale);
+        camera.y = e.clientY - (pos.y * camera.scale);
+
+        cameraRender.needsRender = true;
+        cameraRender.needsGridRender = true;
+
+        // Chrome blurring fix
+        if (zoomTimeout !== null) clearTimeout(zoomTimeout);
+        zoomTimeout = setTimeout(() => {
+            if (viewportEl) {
+                viewportEl.style.display = 'none';
+                void viewportEl.offsetHeight;  // Force reflow
+                viewportEl.style.display = 'block';
+            }
+        }, 200) as unknown as number;
+    }
+
     // Keyboard state tracking
     function handleKeyDown(e: KeyboardEvent) {
         keyboardState.ctrl = e.ctrlKey;
@@ -83,6 +114,11 @@
 
         if (e.key === ' ') {
             keyboardState.space = true;
+            // Remove focus from any focused element when Space is pressed
+            // (this is to prevent Chrome from showing an outline over focused element on Space key)
+            if (document.activeElement instanceof HTMLElement) {
+                document.activeElement.blur();
+            }
         }
 
         if (e.key === 'Escape' && selectionState.selectedIds.size > 0) {
@@ -335,7 +371,13 @@
     })
 </script>
 
-<svelte:window on:keydown={handleKeyDown} on:keyup={handleKeyUp} on:mousemove={handleMouseMove} on:mouseup={handleMouseUp} />
+<svelte:window
+    on:keydown={handleKeyDown}
+    on:keyup={handleKeyUp}
+    on:mousemove={handleMouseMove}
+    on:mouseup={handleMouseUp}
+    on:wheel|nonpassive={handleWheel}
+/>
 
 <!-- role, tabindex and aria-label are added for a11y compliance -->
 <!-- svelte-ignore a11y_no_noninteractive_tabindex -->

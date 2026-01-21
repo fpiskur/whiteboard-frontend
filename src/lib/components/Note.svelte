@@ -150,6 +150,17 @@
         will-change: transform;
     }
 
+    /* Remove focus outline for mouse/pointer interactions */
+    .note:focus {
+        outline: none;
+    }
+
+    /* Keep outline for keyboard navigation (accessibility) */
+    .note:focus-visible {
+        outline: 2px solid #007acc;
+        outline-offset: 2px;
+    }
+
     .note.selected {
         background-color: #f0f8ff;
     }

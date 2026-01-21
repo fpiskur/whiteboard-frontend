@@ -164,10 +164,12 @@
             );
         }
 
-        // End box selection
+        // End box selection - select notes in box
         if (selectionState.box.isBoxSelecting) {
-            // TODO: Select notes in box (next step)
+            selectNotesInBox();
             selectionState.box.isBoxSelecting = false;
+            selectionState.box.boxStart = null;
+            selectionState.box.boxEnd = null;
             cameraRender.needsRender = true;
         }
 
@@ -177,6 +179,48 @@
         dragState.relativeOffsets.clear();
         clickState.clickedNoteId = null;
         clickState.ctrlClickTarget = null;
+    }
+
+    // Select notes inside a box
+    function selectNotesInBox() {
+        if (!selectionState.box.boxStart || !selectionState.box.boxEnd) return;
+
+        const box = {
+            left: Math.min(selectionState.box.boxStart.x, selectionState.box.boxEnd.x),
+            right: Math.max(selectionState.box.boxStart.x, selectionState.box.boxEnd.x),
+            top: Math.min(selectionState.box.boxStart.y, selectionState.box.boxEnd.y),
+            bottom: Math.max(selectionState.box.boxStart.y, selectionState.box.boxEnd.y)
+        };
+
+        const notesInBox: number[] = [];
+
+        notesState.items.forEach(note => {
+            const noteRight = note.pos_x + note.width;
+            const noteBottom = note.pos_y + note.height;
+
+            // Check if note intersects with box
+            const intersects = !(
+                note.pos_x > box.right || noteRight < box.left ||
+                note.pos_y > box.bottom || noteBottom < box.top
+            );
+
+            if (intersects) {
+                notesInBox.push(note.id);
+            }
+        });
+
+        // Handle modifier keys
+        if (keyboardState.ctrl) {
+            // Ctrl: Add to selection
+            notesInBox.forEach(id => selectionState.selectedIds.add(id));
+        } else if (keyboardState.shift) {
+            // Shift: Remove from selection (subtractive)
+            notesInBox.forEach(id => selectionState.selectedIds.delete(id));
+        } else {
+            // No modifier: Replace selection
+            selectionState.selectedIds.clear();
+            notesInBox.forEach(id => selectionState.selectedIds.add(id));
+        }
     }
 </script>
 

@@ -46,6 +46,19 @@ button {
     background-color: var(--color-secondary-hover);
 }
 
+.btn-danger {
+    background-color: #dc2626;
+    color: white;
+}
+
+.btn-danger:hover:not(:disabled) {
+    background-color: #b91c1c;
+}
+
+.btn-danger:disabled {
+    background-color: var(--color-primary-disabled);
+    cursor: not-allowed;
+}
 /* ===== MODALS ===== */
 .modal-backdrop {
     position: fixed;

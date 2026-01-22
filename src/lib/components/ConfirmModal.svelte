@@ -1,0 +1,73 @@
+<script lang="ts">
+    interface Props {
+        isOpen: boolean;
+        title: string;
+        message: string;
+        confirmText?: string;
+        cancelText?: string;
+        onConfirm: () => void;
+        onCancel: () => void;
+        variant?: 'danger' | 'warning';
+    }
+
+    let {
+        isOpen = $bindable(),
+        title,
+        message,
+        confirmText = 'Confirm',
+        cancelText = 'Cancel',
+        onConfirm,
+        onCancel,
+        variant = 'danger'
+    }: Props = $props();
+
+    function handleConfirm() {
+        onConfirm();
+        isOpen = false;
+    }
+
+    function handleCancel() {
+        onCancel();
+        isOpen = false;
+    }
+
+    // Close on Escape key
+    function handleKeyDown(e: KeyboardEvent) {
+        if (e.key === 'Escape') {
+            handleCancel();
+        }
+    }
+</script>
+
+<svelte:window onkeydown={handleKeyDown} />
+
+{#if isOpen}
+    <div
+        class="modal-backdrop"
+        onclick={handleCancel}
+    >
+        <div
+            class="modal-content"
+            onclick={(e) => e.stopPropagation()}
+        >
+            <h2>{title}</h2>
+            <p>{message}</p>
+            <div class="modal-actions">
+                <button class="btn-secondary" onclick={handleCancel}>
+                    {cancelText}
+                </button>
+                <button class="btn-{variant}" onclick={handleConfirm}>
+                    {confirmText}
+                </button>
+            </div>
+        </div>
+    </div>
+{/if}
+
+<style>
+    p {
+        color: var(--color-text-muted);
+        margin: 0;
+        line-height: 1.5;
+    }
+</style>

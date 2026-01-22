@@ -1,7 +1,7 @@
 <script lang="ts">
     import { onMount, onDestroy } from 'svelte';
     import { camera, cameraRender, clampScale } from '$lib/state/cameraState.svelte';
-    import { notesState, loadNotes, batchUpdateNotesLocal, createNoteLocal, updateNoteLocal } from '$lib/state/notesState.svelte';
+    import { notesState, loadNotes, batchUpdateNotesLocal, createNoteLocal, updateNoteLocal, deleteNotesLocal } from '$lib/state/notesState.svelte';
     import { selectionState, keyboardState } from '$lib/state/selectionState.svelte';
     import { mouseState, dragState, panState, clickState } from '$lib/state/interactionState.svelte';
     import { screenToWorld, getCenteredNotePosition } from '$lib/utils/canvas-utils';
@@ -13,12 +13,15 @@
     import NotesLayer from './NotesLayer.svelte';
     import CreateNoteFAB from './CreateNoteFAB.svelte';
     import NoteFormModal from './NoteFormModal.svelte';
+    import ConfirmModal from './ConfirmModal.svelte';
     import type { Note } from '$lib/types';
 
     let viewportEl: HTMLDivElement;
     let animationFrameId: number | null = null;
     let isModalOpen = $state(false);
     let editingNote = $state<Note | null>(null);
+    let showDeleteConfirm = $state(false);
+    let notesToDelete = $state<number[]>([]);
 
     onMount(async () => {
         await loadNotes();
@@ -137,6 +140,12 @@
             notesState.items.forEach(note => {
                 selectionState.selectedIds.add(note.id);
             });
+        }
+
+        if (e.key === 'Delete' && selectionState.selectedIds.size > 0) {
+            e.preventDefault();
+            notesToDelete = Array.from(selectionState.selectedIds);
+            showDeleteConfirm = true;
         }
     }
 
@@ -392,6 +401,21 @@
         }
     }
 
+    async function handleConfirmDelete() {
+        try {
+            await deleteNotesLocal(notesToDelete);
+            selectionState.selectedIds.clear();
+            notesToDelete = [];
+        } catch (error) {
+            console.error('Failed to delete notes: ', error);
+            // TODO: Show error toast (Step 19)
+        }
+    }
+
+    function handleCancelDelete() {
+        notesToDelete = [];
+    }
+
     // Cleanup RAF on component unmount
     onDestroy(() => {
         if (animationFrameId !== null) {
@@ -431,6 +455,17 @@
 <!-- FAB and Modal -->
 <CreateNoteFAB onclick={() => isModalOpen = true} />
 <NoteFormModal bind:isOpen={isModalOpen} bind:editNote={editingNote} onSubmit={handleSubmitNote} />
+<ConfirmModal
+    bind:isOpen={showDeleteConfirm}
+    title="Delete {notesToDelete.length === 1 ? 'Note' : 'Notes'}"
+    message={notesToDelete.length === 1
+        ? 'Are you sure you want to delete this note? This action cannot be undone.'
+        : `Are you sure you want to delete ${notesToDelete.length} notes? This action cannot be undone.`}
+    confirmText="Delete"
+    variant="danger"
+    onConfirm={handleConfirmDelete}
+    onCancel={handleCancelDelete}
+/>
 
 <style>
     .viewport {

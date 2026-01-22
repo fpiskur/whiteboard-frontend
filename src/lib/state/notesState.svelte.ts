@@ -1,5 +1,5 @@
 import type { Note, CreateNoteData, UpdateNoteData, ApiError } from '$lib/types';
-import { fetchNotes, createNote, updateNote, batchUpdateNotes, deleteNote } from '$lib/api/rails-api';
+import { fetchNotes, createNote, updateNote, batchUpdateNotes, deleteNote, batchDeleteNotes } from '$lib/api/rails-api';
 
 type NotesState = {
     items: Note[];
@@ -55,4 +55,16 @@ export async function batchUpdateNotesLocal(updates: Array<{ id: number; data: U
 export async function deleteNoteLocal(id: number) {
     await deleteNote(id);
     notesState.items = notesState.items.filter((n) => n.id !== id);
+}
+
+export async function deleteNotesLocal(ids: number[]): Promise<void> {
+    try {
+        await batchDeleteNotes(ids);
+
+        //Remove from local state
+        notesState.items = notesState.items.filter(note => !ids.includes(note.id));
+    } catch (error) {
+        console.error('Failed to delete notes: ', error);
+        throw error;
+    }
 }

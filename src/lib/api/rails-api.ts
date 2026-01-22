@@ -106,7 +106,7 @@ class ApiClient {
 
     // Batch delete
     async batchDeleteNotes(ids: number[]): Promise<void> {
-        return this.request<void>('notes/bulk_delete', {
+        return this.request<void>('/notes/bulk_delete', {
             method: 'DELETE',
             body: JSON.stringify({ ids }),
         });

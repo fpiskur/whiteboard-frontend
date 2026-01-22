@@ -38,3 +38,9 @@ export const BORDER = {
   BASE_PX: 1,
   BASE_SELECTED_PX: 2
 };
+
+export const GRID = {
+  BASE_SIZE: 20,
+  ZOOM_LEVELS: [0.125, 0.25, 0.5, 1, 2, 4, 8, 16],
+  SIZES: [160, 80, 40, 20, 20, 20, 10, 5]
+};

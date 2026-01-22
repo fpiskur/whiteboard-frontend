@@ -8,7 +8,10 @@
     import { screenToWorld } from '$lib/utils/canvas-utils';
     import { getViewportRect, setMouseDownPosition } from '$lib/utils/viewport-utils';
 
-    let { note }: { note: NoteType } = $props();
+    let { note, onEdit }: {
+        note: NoteType;
+        onEdit?: (noteId: number) => void;
+    } = $props();
 
     const isSelected = $derived(selectionState.selectedIds.has(note.id));
 
@@ -106,6 +109,17 @@
             }
         });
     }
+
+    function handleDoubleClick(e: MouseEvent) {
+        e.stopPropagation();
+
+        // Don't trigger edit when clicking resize handle
+        const target = e.target as HTMLElement;
+        if (target.closest('.resize-handle')) return;
+
+        // Trigger edit callback
+        onEdit?.(note.id);
+    }
 </script>
 
 <!-- role, tabindex and aria-label are added for a11y compliance -->
@@ -124,6 +138,7 @@
         box-shadow: {boxShadow};
     "
     onmousedown={handleMouseDown}
+    ondblclick={handleDoubleClick}
 >
     <div class="note-content">{note.content}</div>
     <div class="resize-handle"></div>

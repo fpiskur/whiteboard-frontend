@@ -7,6 +7,8 @@
     $effect(() => {
         // This will reactively update when camera changes
     });
+
+    let { onEditNote }: { onEditNote?: (noteId: number) => void } = $props();
 </script>
 
 <div
@@ -14,7 +16,7 @@
     style="transform: translate({camera.x}px, {camera.y}px) scale({camera.scale})"
 >
     {#each notesState.items as note (note.id)}
-        <Note {note} />
+        <Note {note} onEdit={onEditNote} />
     {/each}
 </div>
 

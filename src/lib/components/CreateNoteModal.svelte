@@ -1,25 +1,44 @@
 <script lang="ts">
+    import type { Note } from '$lib/types';
+
     let {
         isOpen = $bindable(false),
+        editNote = $bindable<Note | null>(null),
         onSubmit
     }: {
         isOpen: boolean;
-        onSubmit: (content: string) => void;
+        editNote?: Note | null;
+        onSubmit: (content: string, noteId?: number) => void;
     } = $props();
 
     let content = $state('');
 
+    // Sync content when editing
+    $effect(() => {
+        if (editNote) {
+            content = editNote.content;
+        } else {
+            content = '';
+        }
+    });
+
+    const isEditMode = $derived(editNote !== null);
+    const modalTitle = $derived(isEditMode ? 'Edit Note' : 'Create a New Note');
+    const submitButtonText = $derived(isEditMode ? 'Save Changes' : 'Create Note');
+
     function handleSubmit(e: Event) {
         e.preventDefault();
         if (content.trim()) {
-            onSubmit(content.trim());
+            onSubmit(content.trim(), editNote?.id);
             content = ''; // Reset form
+            editNote = null;
             isOpen = false;
         }
     }
 
     function handleCancel() {
         content = '';
+        editNote = null;
         isOpen = false;
     }
 
@@ -49,7 +68,7 @@
         aria-labelledby="modal-title"
     >
         <div class="modal-content">
-            <h2 id="modal-title">Create New Note</h2>
+            <h2 id="modal-title">{modalTitle}</h2>
             <form onsubmit={handleSubmit}>
                 <label for="note-content">
                     Content
@@ -66,7 +85,7 @@
                         Cancel
                     </button>
                     <button type="submit" class="btn-primary" disabled={!content.trim()}>
-                        Create Note
+                        {submitButtonText}
                     </button>
                 </div>
             </form>

@@ -1,7 +1,7 @@
 <script lang="ts">
     import { onMount, onDestroy } from 'svelte';
     import { camera, cameraRender, clampScale } from '$lib/state/cameraState.svelte';
-    import { notesState, loadNotes, batchUpdateNotesLocal, createNoteLocal } from '$lib/state/notesState.svelte';
+    import { notesState, loadNotes, batchUpdateNotesLocal, createNoteLocal, updateNoteLocal } from '$lib/state/notesState.svelte';
     import { selectionState, keyboardState } from '$lib/state/selectionState.svelte';
     import { mouseState, dragState, panState, clickState } from '$lib/state/interactionState.svelte';
     import { screenToWorld, getCenteredNotePosition } from '$lib/utils/canvas-utils';
@@ -12,10 +12,12 @@
     import NotesLayer from './NotesLayer.svelte';
     import CreateNoteFAB from './CreateNoteFAB.svelte';
     import CreateNoteModal from './CreateNoteModal.svelte';
+    import type { Note } from '$lib/types';
 
     let viewportEl: HTMLDivElement;
     let animationFrameId: number | null = null;
     let isModalOpen = $state(false);
+    let editingNote = $state<Note | null>(null);
 
     onMount(async () => {
         await loadNotes();
@@ -362,34 +364,48 @@
         }
     }
 
-    async function handleCreateNote(content: string) {
-        if (!viewportEl) return;
-
-        const rect = viewportEl.getBoundingClientRect();
-        const noteWidth = NOTE_SIZE.DEFAULT_WIDTH;
-        const noteHeight = NOTE_SIZE.DEFAULT_HEIGHT;
-
-        // Calculate precise center position
-        const position = getCenteredNotePosition(
-            rect.width,
-            rect.height,
-            noteWidth,
-            noteHeight,
-            camera
-        );
-
+    async function handleSubmitNote(content: string, noteId?: number) {
         try {
-            await createNoteLocal({
-                content,
-                pos_x: position.x,
-                pos_y: position.y,
-                width: noteWidth,
-                height: noteHeight,
-                bg_color: '#fff'
-            });
+            if (noteId !== undefined) {
+                // Edit existing note
+                await updateNoteLocal(noteId, { content });
+            } else {
+                // Create new note
+                if (!viewportEl) return;
+
+                const rect = viewportEl.getBoundingClientRect();
+                const noteWidth = NOTE_SIZE.DEFAULT_WIDTH;
+                const noteHeight = NOTE_SIZE.DEFAULT_HEIGHT;
+
+                // Calculate precise center position
+                const position = getCenteredNotePosition(
+                    rect.width,
+                    rect.height,
+                    noteWidth,
+                    noteHeight,
+                    camera
+                );
+
+                await createNoteLocal({
+                    content,
+                    pos_x: position.x,
+                    pos_y: position.y,
+                    width: noteWidth,
+                    height: noteHeight,
+                    bg_color: '#fff'
+                });
+            }
         } catch (err) {
-            console.error('Failed to create note: ', err);
+            console.error('Failed to save note: ', err);
             // TODO: Show error message to user (Step 19)
+        }
+    }
+
+    function handleEditNote(noteId: number) {
+        const note = notesState.items.find(n => n.id === noteId);
+        if (note) {
+            editingNote = note;
+            isModalOpen = true;
         }
     }
 
@@ -425,13 +441,13 @@
     onmousedown={handleMouseDown}
 >
     <GridCanvas />
-    <NotesLayer />
+    <NotesLayer onEditNote={handleEditNote} />
     <OverlayCanvas />
 </div>
 
 <!-- FAB and Modal -->
 <CreateNoteFAB onclick={() => isModalOpen = true} />
-<CreateNoteModal bind:isOpen={isModalOpen} onSubmit={handleCreateNote} />
+<CreateNoteModal bind:isOpen={isModalOpen} bind:editNote={editingNote} onSubmit={handleSubmitNote} />
 
 <style>
     .viewport {

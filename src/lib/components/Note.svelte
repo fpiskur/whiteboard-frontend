@@ -161,8 +161,8 @@
 <style>
     .note {
         position: absolute;
-        padding: 40px;
-        border-radius: 4px;
+        padding: var(--spacing-xl);
+        border-radius: var(--radius-sm);
         cursor: move;
         display: flex;
         align-items: center;
@@ -180,7 +180,7 @@
 
     /* Keep outline for keyboard navigation (accessibility) */
     .note:focus-visible {
-        outline: 2px solid #007acc;
+        outline: 2px solid var(--color-primary);
         outline-offset: 2px;
     }
 

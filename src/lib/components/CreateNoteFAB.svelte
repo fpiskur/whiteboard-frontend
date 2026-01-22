@@ -12,15 +12,15 @@
 <style>
     .fab {
         position: fixed;
-        bottom: 24px;
-        right: 24px;
+        bottom: var(--spacing-lg);
+        right: var(--spacing-lg);
         width: 56px;
         height: 56px;
         padding: 0;
         border-radius: 50%;
-        background-color: #007acc;
+        background-color: var(--color-primary);
         border: none;
-        box-shadow: 0 4px 12px rgba(0, 122, 204, 0.4);
+        box-shadow: var(--shadow-md);
         cursor: pointer;
         display: flex;
         align-items: center;
@@ -31,8 +31,8 @@
     }
 
     .fab:hover {
-        background-color: #0066aa;
-        box-shadow: 0 6px 16px rgba(0, 122, 204, 0.5);
+        background-color: var(--color-primary-hover);
+        box-shadow: var(--shadow-lg);
         transform: scale(1.05);
     }
 

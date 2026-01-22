@@ -11,7 +11,7 @@
     import OverlayCanvas from './OverlayCanvas.svelte';
     import NotesLayer from './NotesLayer.svelte';
     import CreateNoteFAB from './CreateNoteFAB.svelte';
-    import CreateNoteModal from './CreateNoteModal.svelte';
+    import NoteFormModal from './NoteFormModal.svelte';
     import type { Note } from '$lib/types';
 
     let viewportEl: HTMLDivElement;
@@ -447,7 +447,7 @@
 
 <!-- FAB and Modal -->
 <CreateNoteFAB onclick={() => isModalOpen = true} />
-<CreateNoteModal bind:isOpen={isModalOpen} bind:editNote={editingNote} onSubmit={handleSubmitNote} />
+<NoteFormModal bind:isOpen={isModalOpen} bind:editNote={editingNote} onSubmit={handleSubmitNote} />
 
 <style>
     .viewport {

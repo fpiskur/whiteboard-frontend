@@ -16,6 +16,7 @@
         right: 24px;
         width: 56px;
         height: 56px;
+        padding: 0;
         border-radius: 50%;
         background-color: #007acc;
         border: none;

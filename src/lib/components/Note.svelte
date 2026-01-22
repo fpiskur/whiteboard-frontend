@@ -4,7 +4,7 @@
     import { notesState } from '$lib/state/notesState.svelte';
     import { selectionState, keyboardState } from '$lib/state/selectionState.svelte';
     import { mouseState, dragState, clickState, panState } from '$lib/state/interactionState.svelte';
-    import { COLORS, BORDER } from '$lib/state/constants';
+    import { COLORS, BORDER, INTERACTION } from '$lib/state/constants';
     import { screenToWorld } from '$lib/utils/canvas-utils';
     import { getViewportRect, setMouseDownPosition } from '$lib/utils/viewport-utils';
 
@@ -14,6 +14,9 @@
     } = $props();
 
     const isSelected = $derived(selectionState.selectedIds.has(note.id));
+
+    // Track local mousedown position for drag detection
+    let localMouseDownPos = $state({ x: 0, y: 0 });
 
     // Calculate border width based on camera scale
     const borderWidthPx = $derived(
@@ -66,6 +69,10 @@
         mouseState.isDown = true;
         setMouseDownPosition(e, mouseState, rect);
 
+        // Store local mousedown position for double-click drag detecion
+        localMouseDownPos.x = mouseState.pos.x;
+        localMouseDownPos.y = mouseState.pos.y;
+
         if (keyboardState.ctrl) {
             // Ctrl+click: toggle selection (don't start drag yet)
             clickState.ctrlClickTarget = note.id;
@@ -117,8 +124,15 @@
         const target = e.target as HTMLElement;
         if (target.closest('.resize-handle')) return;
 
-        // Trigger edit callback
-        onEdit?.(note.id);
+        // Check if this was actually a drag (not a clean double-click)
+        const dx = mouseState.pos.x - localMouseDownPos.x;
+        const dy = mouseState.pos.y - localMouseDownPos.y;
+        const distance = Math.sqrt(dx * dx + dy * dy);
+
+        // Only trigger edit callback if no significant movement (wasn't a drag)
+        if (distance < INTERACTION.CLICK_THRESHOLD) {
+            onEdit?.(note.id);
+        }
     }
 </script>
 

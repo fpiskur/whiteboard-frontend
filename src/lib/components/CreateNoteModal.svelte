@@ -22,6 +22,12 @@
         }
     });
 
+    // Action to focus element when it's added to DOM
+    function autofocus(node: HTMLElement) {
+        node.focus();
+        return {};
+    }
+
     const isEditMode = $derived(editNote !== null);
     const modalTitle = $derived(isEditMode ? 'Edit Note' : 'Create a New Note');
     const submitButtonText = $derived(isEditMode ? 'Save Changes' : 'Create Note');
@@ -50,18 +56,29 @@
 
     // Close on Escape key
     function handleKeyDown(e: KeyboardEvent) {
-        if (e.key === 'Escape') {
+        if (isOpen && e.key === 'Escape') {
+            e.preventDefault();
             handleCancel();
+        }
+    }
+
+    // Backdrop keyboard handler for a11y (same as click)
+    function handleBackdropKeyDown(e: KeyboardEvent) {
+        if (e.key === 'Enter' || e.key === ' ') {
+            handleBackdropClick(e as any);
         }
     }
 </script>
 
+<!-- Attach keydown to window, not backdrop -->
+<svelte:window onkeydown={handleKeyDown} />
+
 {#if isOpen}
-    <!-- svelte-ignore a11y_no_noninteractive_element_interactions, a11y_autofocus -->
+    <!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
     <div
         class="modal-backdrop"
         onclick={handleBackdropClick}
-        onkeydown={handleKeyDown}
+        onkeydown={handleBackdropKeyDown}
         role="dialog"
         tabindex="0"
         aria-modal="true"
@@ -74,10 +91,10 @@
                     Content
                     <textarea
                         id="note-content"
+                        use:autofocus
                         bind:value={content}
                         placeholder="Enter note content..."
                         rows="6"
-                        autofocus
                     ></textarea>
                 </label>
                 <div class="modal-actions">

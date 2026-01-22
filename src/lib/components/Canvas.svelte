@@ -6,6 +6,7 @@
     import { mouseState, dragState, panState, clickState } from '$lib/state/interactionState.svelte';
     import { screenToWorld, getCenteredNotePosition } from '$lib/utils/canvas-utils';
     import { setMouseDownPosition, setMousePosition } from '$lib/utils/viewport-utils';
+    import { getNotesInBox } from '$lib/utils/collision-utils';
     import { INTERACTION, NOTE_SIZE } from '$lib/state/constants';
     import GridCanvas from './GridCanvas.svelte';
     import OverlayCanvas from './OverlayCanvas.svelte';
@@ -326,29 +327,11 @@
     function selectNotesInBox() {
         if (!selectionState.box.boxStart || !selectionState.box.boxEnd) return;
 
-        const box = {
-            left: Math.min(selectionState.box.boxStart.x, selectionState.box.boxEnd.x),
-            right: Math.max(selectionState.box.boxStart.x, selectionState.box.boxEnd.x),
-            top: Math.min(selectionState.box.boxStart.y, selectionState.box.boxEnd.y),
-            bottom: Math.max(selectionState.box.boxStart.y, selectionState.box.boxEnd.y)
-        };
-
-        const notesInBox: number[] = [];
-
-        notesState.items.forEach(note => {
-            const noteRight = note.pos_x + note.width;
-            const noteBottom = note.pos_y + note.height;
-
-            // Check if note intersects with box
-            const intersects = !(
-                note.pos_x > box.right || noteRight < box.left ||
-                note.pos_y > box.bottom || noteBottom < box.top
-            );
-
-            if (intersects) {
-                notesInBox.push(note.id);
-            }
-        });
+        const notesInBox = getNotesInBox(
+            notesState.items,
+            selectionState.box.boxStart,
+            selectionState.box.boxEnd
+        );
 
         // Handle modifier keys
         if (keyboardState.ctrl) {

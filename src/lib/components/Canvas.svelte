@@ -1,18 +1,21 @@
 <script lang="ts">
     import { onMount, onDestroy } from 'svelte';
     import { camera, cameraRender, clampScale } from '$lib/state/cameraState.svelte';
-    import { notesState, loadNotes, batchUpdateNotesLocal } from '$lib/state/notesState.svelte';
+    import { notesState, loadNotes, batchUpdateNotesLocal, createNoteLocal } from '$lib/state/notesState.svelte';
     import { selectionState, keyboardState } from '$lib/state/selectionState.svelte';
     import { mouseState, dragState, panState, clickState } from '$lib/state/interactionState.svelte';
-    import { screenToWorld } from '$lib/utils/canvas-utils';
+    import { screenToWorld, getCenteredNotePosition } from '$lib/utils/canvas-utils';
     import { setMouseDownPosition, setMousePosition } from '$lib/utils/viewport-utils';
-    import { INTERACTION } from '$lib/state/constants';
+    import { INTERACTION, NOTE_SIZE } from '$lib/state/constants';
     import GridCanvas from './GridCanvas.svelte';
     import OverlayCanvas from './OverlayCanvas.svelte';
     import NotesLayer from './NotesLayer.svelte';
+    import CreateNoteFAB from './CreateNoteFAB.svelte';
+    import CreateNoteModal from './CreateNoteModal.svelte';
 
     let viewportEl: HTMLDivElement;
     let animationFrameId: number | null = null;
+    let isModalOpen = $state(false);
 
     onMount(async () => {
         await loadNotes();
@@ -110,10 +113,15 @@
 
         if (e.key === ' ') {
             keyboardState.space = true;
-            // Remove focus from any focused element when Space is pressed
-            // (this is to prevent Chrome from showing an outline over focused element on Space key)
-            if (document.activeElement instanceof HTMLElement) {
-                document.activeElement.blur();
+            // Remove focus from focused note element when Space is pressed
+            // (this is to prevent Chrome from showing an outline over focused note on Space key)
+            const activeEl = document.activeElement;
+            if (activeEl instanceof HTMLElement) {
+                const isNote = activeEl.classList.contains('note') || activeEl.closest('.note') !== null;
+
+                if (isNote) {
+                    activeEl.blur();
+                }
             }
         }
 
@@ -354,6 +362,37 @@
         }
     }
 
+    async function handleCreateNote(content: string) {
+        if (!viewportEl) return;
+
+        const rect = viewportEl.getBoundingClientRect();
+        const noteWidth = NOTE_SIZE.DEFAULT_WIDTH;
+        const noteHeight = NOTE_SIZE.DEFAULT_HEIGHT;
+
+        // Calculate precise center position
+        const position = getCenteredNotePosition(
+            rect.width,
+            rect.height,
+            noteWidth,
+            noteHeight,
+            camera
+        );
+
+        try {
+            await createNoteLocal({
+                content,
+                pos_x: position.x,
+                pos_y: position.y,
+                width: noteWidth,
+                height: noteHeight,
+                bg_color: '#fff'
+            });
+        } catch (err) {
+            console.error('Failed to create note: ', err);
+            // TODO: Show error message to user (Step 19)
+        }
+    }
+
     // Cleanup RAF on component unmount
     onDestroy(() => {
         if (animationFrameId !== null) {
@@ -389,6 +428,10 @@
     <NotesLayer />
     <OverlayCanvas />
 </div>
+
+<!-- FAB and Modal -->
+<CreateNoteFAB onclick={() => isModalOpen = true} />
+<CreateNoteModal bind:isOpen={isModalOpen} onSubmit={handleCreateNote} />
 
 <style>
     .viewport {

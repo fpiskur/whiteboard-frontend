@@ -35,3 +35,28 @@ export function worldToScreen(
         y: worldY * camera.scale + camera.y
     };
 }
+
+/**
+ * Get the center of the viewport in world coordinates, adjusted for note dimensions
+ * This positions the note so its CENTER is at viewport center, not top-left corner
+ */
+export function getCenteredNotePosition(
+    viewportWidth: number,
+    viewportHeight: number,
+    noteWidth: number,
+    noteHeight: number,
+    camera: { x: number; y: number; scale: number }
+): { x: number; y: number } {
+    // Center of viewport in screen coordinates
+    const screenCenterX = viewportWidth / 2;
+    const screenCenterY = viewportHeight / 2;
+
+    // Convert to world coordinates
+    const worldCenter = screenToWorld(screenCenterX, screenCenterY, camera);
+
+    // Adjust for note dimensions (position is top-left, so subtract half width/height)
+    return {
+        x: worldCenter.x - noteWidth / 2,
+        y: worldCenter.y - noteHeight / 2
+    };
+}

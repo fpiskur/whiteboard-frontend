@@ -3,7 +3,7 @@
     import { camera, cameraRender, clampScale } from '$lib/state/cameraState.svelte';
     import { notesState, loadNotes, batchUpdateNotesLocal, createNoteLocal, updateNoteLocal, deleteNotesLocal } from '$lib/state/notesState.svelte';
     import { selectionState, keyboardState } from '$lib/state/selectionState.svelte';
-    import { mouseState, dragState, panState, clickState } from '$lib/state/interactionState.svelte';
+    import { mouseState, dragState, panState, clickState, resizeState } from '$lib/state/interactionState.svelte';
     import { screenToWorld, getCenteredNotePosition } from '$lib/utils/canvas-utils';
     import { setMouseDownPosition, setMousePosition } from '$lib/utils/viewport-utils';
     import { getNotesInBox } from '$lib/utils/collision-utils';
@@ -215,6 +215,21 @@
         const rect = viewportEl.getBoundingClientRect();
         setMousePosition(e, mouseState, rect);
 
+        // Handle resizing
+        if (resizeState.targetId !== null && resizeState.startSize && resizeState.startPos) {
+            const note = notesState.items.find(n => n.id === resizeState.targetId);
+            if (note) {
+                // Calculate delta in screen space, then scale to world space
+                const dx = (e.clientX - resizeState.startPos.x) / camera.scale;
+                const dy = (e.clientY - resizeState.startPos.y) / camera.scale;
+
+                // Apply new size with minimum constraints
+                note.width = Math.max(NOTE_SIZE.MIN_WIDTH, resizeState.startSize.width + dx);
+                note.height = Math.max(NOTE_SIZE.MIN_HEIGHT, resizeState.startSize.height + dy);
+            }
+            return;  // Don't handle other interactions while resizing
+        }
+
         // Handle Space+drag panning
         if (keyboardState.space && panState.isDraggingCanvas) {
             camera.x = e.clientX - panState.dragStart.x;
@@ -278,6 +293,22 @@
         const dy = mouseState.pos.y - mouseState.downPos.y;
         const distance = Math.sqrt(dx * dx + dy * dy);
         const wasClick = distance < INTERACTION.CLICK_THRESHOLD;
+
+        // End resize - sync to backend
+        if (resizeState.targetId !== null) {
+            const note = notesState.items.find(n => n.id === resizeState.targetId);
+            if (note) {
+                updateNoteLocal(resizeState.targetId, {
+                    width: note.width,
+                    height: note.height
+                }).catch(err => console.error('Failed to update note size: ', err));
+            }
+
+            resizeState.targetId = null;
+            resizeState.startSize = null;
+            resizeState.startPos = null;
+            return;
+        }
 
         // Handle Ctrl+click toggle
         if (clickState.ctrlClickTarget !== null && keyboardState.ctrl && wasClick) {
@@ -417,6 +448,25 @@
         notesToDelete = [];
     }
 
+    function handleResizeStart(noteId: number, e: MouseEvent) {
+        e.stopPropagation();
+
+        const note = notesState.items.find(n => n.id === noteId);
+        if (!note) return;
+
+        resizeState.targetId = noteId;
+        resizeState.startSize = { width: note.width, height: note.height };
+        resizeState.startPos = { x: e.clientX, y: e.clientY };
+
+        // Select note if not already selected
+        if (!selectionState.selectedIds.has(noteId)) {
+            if (!keyboardState.ctrl) {
+                selectionState.selectedIds.clear();
+            }
+            selectionState.selectedIds.add(noteId);
+        }
+    }
+
     // Cleanup RAF on component unmount
     onDestroy(() => {
         if (animationFrameId !== null) {
@@ -446,10 +496,11 @@
     class:space-drag={keyboardState.space && !dragState.targetId && !selectionState.box.isBoxSelecting}
     class:middle-mouse-pan={panState.isMiddleMouse}
     class:box-selecting={selectionState.box.isBoxSelecting}
+    class:resizing={resizeState.targetId !== null}
     onmousedown={handleMouseDown}
 >
     <GridCanvas />
-    <NotesLayer onEditNote={handleEditNote} />
+    <NotesLayer onEditNote={handleEditNote} onResizeStart={handleResizeStart} />
     <OverlayCanvas />
 </div>
 
@@ -525,5 +576,17 @@
 
     .viewport.box-selecting :global(.resize-handle) {
         cursor: crosshair !important;
+    }
+
+    .viewport.resizing {
+        cursor: nwse-resize !important;
+    }
+
+    .viewport.resizing :global(.note) {
+        cursor: nwse-resize !important;
+    }
+
+    .viewport.resizing :global(.resize-handle) {
+        cursor: nwse-resize !important;
     }
 </style>

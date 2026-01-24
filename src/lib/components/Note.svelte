@@ -8,10 +8,14 @@
     import { screenToWorld } from '$lib/utils/canvas-utils';
     import { getViewportRect, setMouseDownPosition } from '$lib/utils/viewport-utils';
 
-    let { note, onEdit }: {
+    interface Props {
         note: NoteType;
+        scale: number;
         onEdit?: (noteId: number) => void;
-    } = $props();
+        onResizeStart: (noteId: number, e: MouseEvent) => void;
+    }
+
+    let { note, scale, onEdit, onResizeStart }: Props = $props();
 
     const isSelected = $derived(selectionState.selectedIds.has(note.id));
 
@@ -134,6 +138,11 @@
             onEdit?.(note.id);
         }
     }
+
+    function handleResizeMouseDown(e: MouseEvent) {
+        e.stopPropagation();  // Prevent drag start
+        onResizeStart(note.id, e);
+    }
 </script>
 
 <!-- role, tabindex and aria-label are added for a11y compliance -->
@@ -155,7 +164,10 @@
     ondblclick={handleDoubleClick}
 >
     <div class="note-content">{note.content}</div>
-    <div class="resize-handle"></div>
+    <div
+        class="resize-handle"
+        onmousedown={handleResizeMouseDown}
+    ></div>
 </div>
 
 <style>

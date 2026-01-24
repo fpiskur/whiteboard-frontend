@@ -25,6 +25,12 @@ export type ClickState = {
     clickedNoteId: number | null;  // For click-to-isolate behavior
 };
 
+export type ResizeState = {
+    targetId: number | null;
+    startSize: { width: number; height: number } | null;
+    startPos: { x: number; y: number } | null;
+};
+
 export const mouseState = $state<MouseState>({
     pos: { x: 0, y: 0 },
     downPos: { x: 0, y: 0 },
@@ -48,4 +54,10 @@ export const panState = $state<PanState>({
 export const clickState = $state<ClickState>({
     ctrlClickTarget: null,
     clickedNoteId: null
+});
+
+export const resizeState = $state<ResizeState>({
+    targetId: null,
+    startSize: null,
+    startPos: null
 });

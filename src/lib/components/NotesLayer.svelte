@@ -1,6 +1,7 @@
 <script lang="ts">
     import { camera } from '$lib/state/cameraState.svelte';
     import { notesState } from '$lib/state/notesState.svelte';
+    import { COLORS, BORDER } from '$lib/state/constants';
     import Note from './Note.svelte';
 
     // Reactive transform based on camera
@@ -8,7 +9,12 @@
         // This will reactively update when camera changes
     });
 
-    let { onEditNote }: { onEditNote?: (noteId: number) => void } = $props();
+    interface Props {
+        onEditNote?: (noteId: number) => void;
+        onResizeStart: (noteId: number, e: MouseEvent) => void;
+    }
+
+    let { onEditNote, onResizeStart }: Props = $props();
 </script>
 
 <div
@@ -16,7 +22,7 @@
     style="transform: translate({camera.x}px, {camera.y}px) scale({camera.scale})"
 >
     {#each notesState.items as note (note.id)}
-        <Note {note} onEdit={onEditNote} />
+        <Note {note} scale={camera.scale} onEdit={onEditNote} {onResizeStart} />
     {/each}
 </div>
 

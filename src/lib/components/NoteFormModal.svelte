@@ -80,7 +80,7 @@
         onclick={handleBackdropClick}
         onkeydown={handleBackdropKeyDown}
         role="dialog"
-        tabindex="0"
+        tabindex="-1"
         aria-modal="true"
         aria-labelledby="modal-title"
     >

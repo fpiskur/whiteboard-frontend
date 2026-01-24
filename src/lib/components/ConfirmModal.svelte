@@ -45,13 +45,21 @@
     <div
         class="modal-backdrop"
         onclick={handleCancel}
+        role="presentation"
+        tabindex="-1"
     >
+        <!-- svelte-ignore a11y_click_events_have_key_events -->
         <div
             class="modal-content"
             onclick={(e) => e.stopPropagation()}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="modal-title"
+            aria-describedby="modal-description"
+            tabindex="-1"
         >
-            <h2>{title}</h2>
-            <p>{message}</p>
+            <h2 id="modal-title">{title}</h2>
+            <p id="modal-description">{message}</p>
             <div class="modal-actions">
                 <button class="btn-secondary" onclick={handleCancel}>
                     {cancelText}

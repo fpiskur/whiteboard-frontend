@@ -1,7 +1,6 @@
 <script lang="ts">
     import { camera } from '$lib/state/cameraState.svelte';
     import { notesState } from '$lib/state/notesState.svelte';
-    import { COLORS, BORDER } from '$lib/state/constants';
     import Note from './Note.svelte';
 
     // Reactive transform based on camera

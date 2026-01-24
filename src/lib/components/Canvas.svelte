@@ -118,6 +118,9 @@
         keyboardState.shift = e.shiftKey;
 
         if (e.key === ' ') {
+            // Don't handle space during resize
+            if (resizeState.targetId !== null) return;
+
             keyboardState.space = true;
             // Remove focus from focused note element when Space is pressed
             // (this is to prevent Chrome from showing an outline over focused note on Space key)

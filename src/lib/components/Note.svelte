@@ -167,6 +167,9 @@
     <div
         class="resize-handle"
         onmousedown={handleResizeMouseDown}
+        role="button"
+        tabindex="-1"
+        aria-label="Resize note"
     ></div>
 </div>
 

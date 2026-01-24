@@ -5,6 +5,8 @@
     --color-primary-disabled: #ccc;
     --color-secondary: #f0f0f0;
     --color-secondary-hover: #e0e0e0;
+    --color-danger: #dc2626;
+    --color-danger-disabled: #b91c1c;
     --color-border: #ddd;
     --color-text: #333;
     --color-text-muted: #555;

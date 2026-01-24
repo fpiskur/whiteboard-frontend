@@ -47,12 +47,12 @@ button {
 }
 
 .btn-danger {
-    background-color: #dc2626;
+    background-color: var(--color-danger);
     color: white;
 }
 
 .btn-danger:hover:not(:disabled) {
-    background-color: #b91c1c;
+    background-color: var(--color-danger-disabled);
 }
 
 .btn-danger:disabled {

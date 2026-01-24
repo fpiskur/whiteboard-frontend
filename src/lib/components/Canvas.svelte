@@ -131,7 +131,8 @@
             }
         }
 
-        if (e.key === 'Escape' && selectionState.selectedIds.size > 0) {
+        // Clear selection if no modals opened
+        if (e.key === 'Escape' && !isModalOpen && !showDeleteConfirm && selectionState.selectedIds.size > 0) {
             selectionState.selectedIds.clear();
         }
 

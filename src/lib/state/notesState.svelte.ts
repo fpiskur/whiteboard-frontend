@@ -13,7 +13,7 @@ export const notesState = $state<NotesState>({
     error: null
 });
 
-export async function loadNotes() {
+export async function loadNotes(): Promise<void> {
     notesState.loading = true;
     notesState.error = null;
     try {
@@ -27,12 +27,12 @@ export async function loadNotes() {
     }
 }
 
-export async function createNoteLocal(data: CreateNoteData) {
+export async function createNoteLocal(data: CreateNoteData): Promise<void> {
     const note = await createNote(data);
     notesState.items.push(note);
 }
 
-export async function updateNoteLocal(id: number, data:UpdateNoteData) {
+export async function updateNoteLocal(id: number, data:UpdateNoteData): Promise<void> {
     const updated = await updateNote(id, data);
     const idx = notesState.items.findIndex((n) => n.id === id);
     if (idx !== -1) {
@@ -40,7 +40,7 @@ export async function updateNoteLocal(id: number, data:UpdateNoteData) {
     }
 }
 
-export async function batchUpdateNotesLocal(updates: Array<{ id: number; data: UpdateNoteData }>) {
+export async function batchUpdateNotesLocal(updates: Array<{ id: number; data: UpdateNoteData }>): Promise<void> {
     const updatedNotes = await batchUpdateNotes(updates);
 
     // Update local state with all returned notes
@@ -52,19 +52,14 @@ export async function batchUpdateNotesLocal(updates: Array<{ id: number; data: U
     });
 }
 
-export async function deleteNoteLocal(id: number) {
+export async function deleteNoteLocal(id: number): Promise<void> {
     await deleteNote(id);
     notesState.items = notesState.items.filter((n) => n.id !== id);
 }
 
 export async function deleteNotesLocal(ids: number[]): Promise<void> {
-    try {
-        await batchDeleteNotes(ids);
+    await batchDeleteNotes(ids);
 
-        //Remove from local state
-        notesState.items = notesState.items.filter(note => !ids.includes(note.id));
-    } catch (error) {
-        console.error('Failed to delete notes: ', error);
-        throw error;
-    }
+    //Remove from local state
+    notesState.items = notesState.items.filter(note => !ids.includes(note.id));
 }

@@ -48,24 +48,11 @@
         isOpen = false;
     }
 
-    function handleBackdropClick(e: MouseEvent) {
-        if (e.target === e.currentTarget) {
-            handleCancel();
-        }
-    }
-
     // Close on Escape key
     function handleKeyDown(e: KeyboardEvent) {
         if (isOpen && e.key === 'Escape') {
             e.preventDefault();
             handleCancel();
-        }
-    }
-
-    // Backdrop keyboard handler for a11y (same as click)
-    function handleBackdropKeyDown(e: KeyboardEvent) {
-        if (e.key === 'Enter' || e.key === ' ') {
-            handleBackdropClick(e as any);
         }
     }
 </script>
@@ -74,17 +61,22 @@
 <svelte:window onkeydown={handleKeyDown} />
 
 {#if isOpen}
-    <!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
     <div
         class="modal-backdrop"
-        onclick={handleBackdropClick}
-        onkeydown={handleBackdropKeyDown}
-        role="dialog"
+        onclick={handleCancel}
+        role="presentation"
         tabindex="-1"
-        aria-modal="true"
-        aria-labelledby="modal-title"
     >
-        <div class="modal-content">
+        <!-- svelte-ignore a11y_click_events_have_key_events -->
+        <div
+            class="modal-content"
+            onclick={(e) => e.stopPropagation()}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="modal-title"
+            aria-describedby="note-content"
+            tabindex="-1"
+        >
             <h2 id="modal-title">{modalTitle}</h2>
             <form onsubmit={handleSubmit}>
                 <label for="note-content">

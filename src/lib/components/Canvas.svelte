@@ -333,7 +333,7 @@
     }
 
     // Select notes inside a box
-    function selectNotesInBox() {
+    function selectNotesInBox(): void {
         if (!selectionState.box.boxStart || !selectionState.box.boxEnd) return;
 
         const notesInBox = getNotesInBox(
@@ -356,7 +356,7 @@
         }
     }
 
-    async function handleSubmitNote(content: string, noteId?: number) {
+    async function handleSubmitNote(content: string, noteId?: number): Promise<void> {
         try {
             if (noteId !== undefined) {
                 // Edit existing note
@@ -393,7 +393,7 @@
         }
     }
 
-    function handleEditNote(noteId: number) {
+    function handleEditNote(noteId: number): void {
         const note = notesState.items.find(n => n.id === noteId);
         if (note) {
             editingNote = note;
@@ -401,7 +401,7 @@
         }
     }
 
-    async function handleConfirmDelete() {
+    async function handleConfirmDelete(): Promise<void> {
         try {
             await deleteNotesLocal(notesToDelete);
             selectionState.selectedIds.clear();
@@ -412,7 +412,7 @@
         }
     }
 
-    function handleCancelDelete() {
+    function handleCancelDelete(): void {
         notesToDelete = [];
     }
 

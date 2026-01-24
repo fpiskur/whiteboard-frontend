@@ -6,8 +6,8 @@ export const ZOOM_CONSTRAINTS = {
 } as const;
 
 export const NOTE_SIZE = {
-  MIN_WIDTH: 50,
-  MIN_HEIGHT: 30,
+  MIN_WIDTH: 120,
+  MIN_HEIGHT: 120,
   DEFAULT_WIDTH: 300,  // Match your Rails default
   DEFAULT_HEIGHT: 150   // Match your Rails default
 } as const;

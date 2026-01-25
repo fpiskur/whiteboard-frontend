@@ -52,3 +52,9 @@ export const RESIZE_HANDLE = {
   SMALL_SIZE: 10,
   LARGE_SIZE: 16
 } as const;
+
+export const AUTO_PAN = {
+  EDGE_SIZE: 10,    // Thickness of the edge zone in px
+  MAX_SPEED: 15,    // px per frame at the very edge
+  MIN_SPEED: 1      // px per frame when just outsize edge
+} as const;

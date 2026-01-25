@@ -7,7 +7,7 @@
     import { screenToWorld, getCenteredNotePosition } from '$lib/utils/canvas-utils';
     import { setMouseDownPosition, setMousePosition } from '$lib/utils/viewport-utils';
     import { getNotesInBox } from '$lib/utils/collision-utils';
-    import { INTERACTION, NOTE_SIZE } from '$lib/state/constants';
+    import { AUTO_PAN, INTERACTION, NOTE_SIZE } from '$lib/state/constants';
     import GridCanvas from './GridCanvas.svelte';
     import OverlayCanvas from './OverlayCanvas.svelte';
     import NotesLayer from './NotesLayer.svelte';
@@ -56,6 +56,92 @@
         cameraRender.needsGridRender = true;
     }
 
+    function autoPanCamera() {
+        if (!mouseState.isDown) return;
+
+        // Only auto-pan during note drag, box selection
+        if (!(dragState.targetId !== null && selectionState.selectedIds.size > 0) &&
+            !selectionState.box.isBoxSelecting &&
+            resizeState.targetId === null) return;
+
+        if (!viewportEl) return;
+        const rect = viewportEl.getBoundingClientRect();
+        const width = rect.width;
+        const height = rect.height;
+
+        let dx = 0;
+        let dy = 0;
+
+        // Horizontal edge detection
+        if (mouseState.pos.x <= AUTO_PAN.EDGE_SIZE) {
+            const t = Math.max(0, Math.min(1, 1 - mouseState.pos.x / AUTO_PAN.EDGE_SIZE));
+            const speed = AUTO_PAN.MIN_SPEED + t * (AUTO_PAN.MAX_SPEED - AUTO_PAN.MIN_SPEED);
+            dx = speed;  // Move camera right (world left)
+        } else if (mouseState.pos.x >= width - AUTO_PAN.EDGE_SIZE) {
+            const t = Math.max(0, Math.min(1, 1 - (width - mouseState.pos.x) / AUTO_PAN.EDGE_SIZE));
+            const speed = AUTO_PAN.MIN_SPEED + t * (AUTO_PAN.MAX_SPEED - AUTO_PAN.MIN_SPEED);
+            dx = -speed;  // Move camera left (world right)
+        }
+
+        // Vertical edge detection
+        if (mouseState.pos.y <= AUTO_PAN.EDGE_SIZE) {
+            const t = Math.max(0, Math.min(1, 1 - mouseState.pos.y / AUTO_PAN.EDGE_SIZE));
+            const speed = AUTO_PAN.MIN_SPEED + t * (AUTO_PAN.MAX_SPEED - AUTO_PAN.MIN_SPEED);
+            dy = speed;  // Move camera down (world up)
+        } else if (mouseState.pos.y >= height - AUTO_PAN.EDGE_SIZE) {
+            const t = Math.max(0, Math.min(1, 1 - (height - mouseState.pos.y) / AUTO_PAN.EDGE_SIZE));
+            const speed = AUTO_PAN.MIN_SPEED + t * (AUTO_PAN.MAX_SPEED - AUTO_PAN.MIN_SPEED);
+            dy = -speed;  // Move camera up (world down)
+        }
+
+        if (dx !== 0 || dy !== 0) {
+            camera.x += dx;
+            camera.y += dy;
+            cameraRender.needsRender = true;
+            cameraRender.needsGridRender = true;
+        }
+    }
+
+    // Update note positions while auto-panning
+    function updateDraggedNotes() {
+        if (dragState.targetId === null) return;
+
+        // Convert current screen mouse position to world coordinates (runs every frame!)
+        const worldPos = screenToWorld(mouseState.pos.x, mouseState.pos.y, camera);
+        mouseState.worldPos.x = worldPos.x;
+        mouseState.worldPos.y = worldPos.y;
+
+        // Update drag target
+        const targetNote = notesState.items.find(n => n.id === dragState.targetId);
+        if (targetNote) {
+            targetNote.pos_x = worldPos.x - dragState.offset.x;
+            targetNote.pos_y = worldPos.y - dragState.offset.y;
+
+            // Update other selected notes with relative offsets
+            selectionState.selectedIds.forEach(id => {
+                if (id === dragState.targetId) return;
+
+                const note = notesState.items.find(n => n.id === id);
+                const relOffset = dragState.relativeOffsets.get(id);
+
+                if (note && relOffset) {
+                    note.pos_x = targetNote!.pos_x + relOffset.x;
+                    note.pos_y = targetNote!.pos_y + relOffset.y;
+                }
+            });
+        }
+    }
+
+    // Update selection box while auto-panning
+    function updateSelectionBox() {
+        if (!selectionState.box.isBoxSelecting) return;
+
+        // Convert current screen mouse position to world coordinates (runs every frame!)
+        const worldPos = screenToWorld(mouseState.pos.x, mouseState.pos.y, camera);
+        selectionState.box.boxEnd = { x: worldPos.x, y: worldPos.y };
+        cameraRender.needsRender = true;
+    }
+
     function renderLoop() {
         let needsContinue = false;
 
@@ -65,7 +151,26 @@
             needsContinue = true;
         }
 
-        // TODO: Add auto-pan during drag here later
+        // Add auto-pan during drag/box-select
+        if (mouseState.isDown && (
+            (dragState.targetId !== null && selectionState.selectedIds.size > 0) ||
+            selectionState.box.isBoxSelecting
+        )) {
+            autoPanCamera();
+            needsContinue = true;
+        }
+
+        // Update dragged notes position every frame (needed for auto-pan)
+        if (dragState.targetId !== null) {
+            updateDraggedNotes();
+            needsContinue = true;
+        }
+
+        // Update selection box every frame (needed for auto-pan)
+        if (selectionState.box.isBoxSelecting) {
+            updateSelectionBox();
+            needsContinue = true;
+        }
 
         if (needsContinue) {
             animationFrameId = requestAnimationFrame(renderLoop);
@@ -253,33 +358,6 @@
             panState.isDraggingCanvas = false;
         }
 
-        // Update dragged notes positions
-        if (dragState.targetId !== null) {
-            const worldPos = screenToWorld(mouseState.pos.x, mouseState.pos.y, camera);
-            mouseState.worldPos.x = worldPos.x;
-            mouseState.worldPos.y = worldPos.y;
-
-            // Update drag target
-            const targetNote = notesState.items.find(n => n.id === dragState.targetId);
-            if (targetNote) {
-                targetNote.pos_x = worldPos.x - dragState.offset.x;
-                targetNote.pos_y = worldPos.y - dragState.offset.y;
-
-                // Update other selected notes with relative offsets
-                selectionState.selectedIds.forEach(id => {
-                    if (id === dragState.targetId) return;
-
-                    const note = notesState.items.find(n => n.id === id);
-                    const relOffset = dragState.relativeOffsets.get(id);
-
-                    if (note && relOffset) {
-                        note.pos_x = targetNote!.pos_x + relOffset.x;
-                        note.pos_y = targetNote!.pos_y + relOffset.y;
-                    }
-                });
-            }
-        }
-
         // Start box selecting only when mouse moves after background click
         if (selectionState.box.boxStart && !selectionState.box.isBoxSelecting && !dragState.targetId) {
             selectionState.box.isBoxSelecting = true;
@@ -290,6 +368,11 @@
             const worldPos = screenToWorld(mouseState.pos.x, mouseState.pos.y, camera);
             selectionState.box.boxEnd = { x: worldPos.x, y: worldPos.y };
             cameraRender.needsRender = true;
+        }
+
+        if (mouseState.isDown && (dragState.targetId !== null ||
+            selectionState.box.isBoxSelecting || resizeState.targetId !== null)) {
+                startRenderLoop()
         }
     }
 

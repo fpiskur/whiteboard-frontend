@@ -10,18 +10,17 @@
 
     interface Props {
         note: NoteType;
-        scale: number;
         onEdit?: (noteId: number) => void;
         onResizeStart: (noteId: number, e: MouseEvent) => void;
         isResizing: boolean;
     }
 
-    let { note, scale, onEdit, onResizeStart, isResizing }: Props = $props();
+    let { note, onEdit, onResizeStart, isResizing }: Props = $props();
 
     const isSelected = $derived(selectionState.selectedIds.has(note.id));
 
     // Determine if resize handle should be large
-    const isLargeHandle = $derived(scale < RESIZE_HANDLE.SCALE_BREAKPOINT);
+    const isLargeHandle = $derived(camera.scale < RESIZE_HANDLE.SCALE_BREAKPOINT);
 
     // Track local mousedown position for drag detection
     let localMouseDownPos = $state({ x: 0, y: 0 });
@@ -216,7 +215,7 @@
         pointer-events: auto;
         word-wrap: break-word;
         scrollbar-width: auto;
-        scrollbar-color: rgba(255, 255, 255, 0.3) transparent;
+        scrollbar-color: rgba(200, 200, 200, 0.3) transparent;
     }
 
     .resize-handle {

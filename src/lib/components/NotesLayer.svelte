@@ -22,7 +22,7 @@
     style="transform: translate({camera.x}px, {camera.y}px) scale({camera.scale})"
 >
     {#each notesState.items as note (note.id)}
-        <Note {note} scale={camera.scale} onEdit={onEditNote} {onResizeStart} isResizing={resizingNoteId === note.id} />
+        <Note {note} onEdit={onEditNote} {onResizeStart} isResizing={resizingNoteId === note.id} />
     {/each}
 </div>
 

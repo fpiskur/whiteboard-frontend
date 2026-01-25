@@ -503,7 +503,11 @@
     onmousedown={handleMouseDown}
 >
     <GridCanvas />
-    <NotesLayer onEditNote={handleEditNote} onResizeStart={handleResizeStart} />
+    <NotesLayer
+        onEditNote={handleEditNote}
+        onResizeStart={handleResizeStart}
+        resizingNoteId={resizeState.targetId}
+    />
     <OverlayCanvas />
 </div>
 
@@ -590,6 +594,20 @@
     }
 
     .viewport.resizing :global(.resize-handle) {
+        cursor: nwse-resize !important;
+    }
+
+    .viewport :global(.note.resizing) {
+        cursor: nwse-resize !important;
+    }
+
+    .viewport :global(.note.resizing) :global(*) {
+        cursor: nwse-resize !important;
+    }
+
+    .viewport.space-drag :global(.note.resizing),
+    .viewport.space-drag :global(.note.resizing) :global(*),
+    .viewport.space-drag :global(.note.resizing) :global(.resize-handle) {
         cursor: nwse-resize !important;
     }
 </style>

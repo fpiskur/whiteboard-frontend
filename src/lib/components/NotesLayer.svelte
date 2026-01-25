@@ -11,9 +11,10 @@
     interface Props {
         onEditNote?: (noteId: number) => void;
         onResizeStart: (noteId: number, e: MouseEvent) => void;
+        resizingNoteId: number | null;
     }
 
-    let { onEditNote, onResizeStart }: Props = $props();
+    let { onEditNote, onResizeStart, resizingNoteId }: Props = $props();
 </script>
 
 <div
@@ -21,7 +22,7 @@
     style="transform: translate({camera.x}px, {camera.y}px) scale({camera.scale})"
 >
     {#each notesState.items as note (note.id)}
-        <Note {note} scale={camera.scale} onEdit={onEditNote} {onResizeStart} />
+        <Note {note} scale={camera.scale} onEdit={onEditNote} {onResizeStart} isResizing={resizingNoteId === note.id} />
     {/each}
 </div>
 

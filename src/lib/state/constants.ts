@@ -46,3 +46,9 @@ export const GRID = {
   ZOOM_LEVELS: [0.125, 0.25, 0.5, 1, 2, 4, 8, 16],
   SIZES: [160, 80, 40, 20, 20, 20, 10, 5]
 } as const;
+
+export const RESIZE_HANDLE = {
+  SCALE_BREAKPOINT: 0.75,  // Below this scale, use large handle
+  SMALL_SIZE: 10,
+  LARGE_SIZE: 16
+} as const;

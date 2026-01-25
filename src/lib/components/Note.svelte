@@ -4,7 +4,7 @@
     import { notesState } from '$lib/state/notesState.svelte';
     import { selectionState, keyboardState } from '$lib/state/selectionState.svelte';
     import { mouseState, dragState, clickState, panState } from '$lib/state/interactionState.svelte';
-    import { COLORS, BORDER, INTERACTION } from '$lib/state/constants';
+    import { COLORS, BORDER, INTERACTION, RESIZE_HANDLE } from '$lib/state/constants';
     import { screenToWorld } from '$lib/utils/canvas-utils';
     import { getViewportRect, setMouseDownPosition } from '$lib/utils/viewport-utils';
 
@@ -13,11 +13,15 @@
         scale: number;
         onEdit?: (noteId: number) => void;
         onResizeStart: (noteId: number, e: MouseEvent) => void;
+        isResizing: boolean;
     }
 
-    let { note, scale, onEdit, onResizeStart }: Props = $props();
+    let { note, scale, onEdit, onResizeStart, isResizing }: Props = $props();
 
     const isSelected = $derived(selectionState.selectedIds.has(note.id));
+
+    // Determine if resize handle should be large
+    const isLargeHandle = $derived(scale < RESIZE_HANDLE.SCALE_BREAKPOINT);
 
     // Track local mousedown position for drag detection
     let localMouseDownPos = $state({ x: 0, y: 0 });
@@ -149,6 +153,7 @@
 <div
     class="note"
     class:selected={isSelected}
+    class:resizing={isResizing}
     role="button"
     tabindex="0"
     aria-label="Draggable note: {note.content.substring(0, 50)}"
@@ -166,6 +171,7 @@
     <div class="note-content">{note.content}</div>
     <div
         class="resize-handle"
+        class:large={isLargeHandle}
         onmousedown={handleResizeMouseDown}
         role="button"
         tabindex="-1"
@@ -224,6 +230,7 @@
         z-index: 3;
     }
 
+    /* Visual indicator extends beyond the clickable area */
     .resize-handle::before {
         content: '';
         position: absolute;
@@ -231,10 +238,20 @@
         right: 0;
         width: 10px;
         height: 10px;
-        /* Will add background-image for resize grip later */
+        background-image: url('/images/resize-grip-small-gray.svg');
+        background-size: contain;
+        background-repeat: no-repeat;
+        background-position: bottom right;
         opacity: 0;
         transition: opacity 0.15s;
         pointer-events: none;
+    }
+
+    /* Large handle variant */
+    .resize-handle.large::before {
+        width: 16px;
+        height: 16px;
+        background-image: url('/images/resize-grip-large-gray.svg');
     }
 
     .note:hover .resize-handle::before {

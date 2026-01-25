@@ -6,7 +6,7 @@ import { GRID } from '$lib/state/constants';
  * @returns Grid size in world units
  */
 export function getGridSize(scale: number): number {
-    let gridSize = GRID.BASE_SIZE;
+    let gridSize: number = GRID.BASE_SIZE;
 
     for (let i = 0; i < GRID.ZOOM_LEVELS.length; i++) {
         if (scale <= GRID.ZOOM_LEVELS[i]) {

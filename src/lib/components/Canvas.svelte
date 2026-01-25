@@ -188,6 +188,9 @@
             return;
         }
 
+        // Only handle left mouse button for selection/drag operations
+        if (e.button !== 0) return;
+
         mouseState.isDown = true;
         setMouseDownPosition(e, mouseState, rect);
 

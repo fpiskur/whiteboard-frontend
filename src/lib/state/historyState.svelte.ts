@@ -1,4 +1,5 @@
 import { createNoteLocal, deleteNotesLocal, updateNoteLocal, batchUpdateNotesLocal } from './notesState.svelte';
+import { toastState } from './toastState.svelte';
 import type { Note } from '$lib/types';
 
 // Action types
@@ -52,6 +53,9 @@ function undo(): void {
             console.error('Undo failed: ', error);
             // Re-add action to undo stack on failure
             undoStack.push(action);
+
+            // Show toast notification
+            toastState.showError('Failed to undo action. Please check your connection.');
         } finally {
             isProcessing = false;
         }
@@ -79,6 +83,9 @@ function redo(): void {
             console.error('Redo failed: ', error);
             // Re-add action to redo stack on failure
             redoStack.push(action);
+
+            // Show toast notification
+            toastState.showError('Faled to redo action. Please check your connection.');
         } finally {
             isProcessing = false;
         }

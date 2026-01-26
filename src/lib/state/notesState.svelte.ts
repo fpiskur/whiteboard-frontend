@@ -28,8 +28,8 @@ export async function loadNotes(): Promise<void> {
 }
 
 export async function createNoteLocal(data: CreateNoteData): Promise<void> {
-    const note = await createNote(data);
-    notesState.items.push(note);
+    const newNote = await createNote(data);
+    notesState.items.push(newNote);
 }
 
 export async function updateNoteLocal(id: number, data:UpdateNoteData): Promise<void> {

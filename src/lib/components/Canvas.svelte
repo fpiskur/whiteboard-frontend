@@ -4,6 +4,7 @@
     import { notesState, loadNotes, batchUpdateNotesLocal, createNoteLocal, updateNoteLocal, deleteNotesLocal } from '$lib/state/notesState.svelte';
     import { selectionState, keyboardState } from '$lib/state/selectionState.svelte';
     import { mouseState, dragState, panState, clickState, resizeState } from '$lib/state/interactionState.svelte';
+    import { historyState } from '$lib/state/historyState.svelte';
     import { screenToWorld, getCenteredNotePosition } from '$lib/utils/canvas-utils';
     import { setMouseDownPosition, setMousePosition } from '$lib/utils/viewport-utils';
     import { getNotesInBox } from '$lib/utils/collision-utils';
@@ -22,6 +23,9 @@
     let editingNote = $state<Note | null>(null);
     let showDeleteConfirm = $state(false);
     let notesToDelete = $state<number[]>([]);
+
+    // State for undo/redo
+    let dragStartPositions = new Map<number, { x: number; y: number }>();
 
     onMount(async () => {
         await loadNotes();
@@ -239,6 +243,20 @@
             }
         }
 
+        // Undo: Ctrl+Z
+        if (e.ctrlKey && e.key === 'z' && !e.shiftKey) {
+            e.preventDefault();
+            historyState.undo();
+            return;
+        }
+
+        // Redo: Ctrl+Shift+Z or Ctrl+Y
+        if (e.ctrlKey && ((e.key === 'Z' && e.shiftKey) || e.key === 'y')) {
+            e.preventDefault();
+            historyState.redo();
+            return;
+        }
+
         // Clear selection if no modals opened
         if (e.key === 'Escape' && !isModalOpen && !showDeleteConfirm && selectionState.selectedIds.size > 0) {
             selectionState.selectedIds.clear();
@@ -358,6 +376,16 @@
             panState.isDraggingCanvas = false;
         }
 
+        // Capture initial positions when drag starts (before first movement)
+        if (dragState.targetId !== null && dragStartPositions.size === 0) {
+            selectionState.selectedIds.forEach(id => {
+                const note = notesState.items.find(n => n.id === id);
+                if (note) {
+                    dragStartPositions.set(id, { x: note.pos_x, y: note.pos_y });
+                }
+            });
+        }
+
         // Start box selecting only when mouse moves after background click
         if (selectionState.box.boxStart && !selectionState.box.isBoxSelecting && !dragState.targetId) {
             selectionState.box.isBoxSelecting = true;
@@ -383,14 +411,31 @@
         const distance = Math.sqrt(dx * dx + dy * dy);
         const wasClick = distance < INTERACTION.CLICK_THRESHOLD;
 
-        // End resize - sync to backend
+        // End resize - sync to backend and record history
         if (resizeState.targetId !== null) {
             const note = notesState.items.find(n => n.id === resizeState.targetId);
-            if (note) {
-                updateNoteLocal(resizeState.targetId, {
-                    width: note.width,
-                    height: note.height
-                }).catch(err => console.error('Failed to update note size: ', err));
+            if (note && resizeState.startSize) {
+                const noteId = resizeState.targetId;
+                const oldSize = resizeState.startSize;
+                const newSize = { width: note.width, height: note.height };
+
+                // Only record if size actually changed
+                if (oldSize.width !== newSize.width || oldSize.height !== newSize.height) {
+                    updateNoteLocal(resizeState.targetId, {
+                        width: note.width,
+                        height: note.height
+                    })
+                        .then(() => {
+                            // Record history only after successful backend update
+                            historyState.recordAction({
+                                type: 'RESIZE_NOTE',
+                                noteId,
+                                oldSize,
+                                newSize
+                            });
+                        })
+                        .catch(err => console.error('Failed to update note size: ', err));
+                }
             }
 
             resizeState.targetId = null;
@@ -417,18 +462,47 @@
 
         // End drag - sync positions to backend
         if (dragState.targetId !== null && !wasClick) {
-            // Update all dragged notes in backend
-            const updates = Array.from(selectionState.selectedIds).map(id => {
-                const note = notesState.items.find(n => n.id === id);
-                return {
-                    id,
-                    data: { pos_x: note!.pos_x, pos_y: note!.pos_y }
-                };
-            });
+            // Colect position changes for history
+            const moveUpdates = Array.from(selectionState.selectedIds)
+                .map(id => {
+                    const note = notesState.items.find(n => n.id === id);
+                    const oldPos = dragStartPositions.get(id);
+                    if (!note || !oldPos) return null;
 
-            batchUpdateNotesLocal(updates).catch(err =>
-                console.error('Failed to update note positions: ', err)
+                    return {
+                        id,
+                        oldPos: { x: oldPos.x, y: oldPos.y },
+                        newPos: { x: note.pos_x, y: note.pos_y }
+                    };
+                })
+                .filter((u): u is NonNullable<typeof u> => u !== null);
+
+            // Only record if positions actually changed
+            const positionsChanged = moveUpdates.some(
+                u => u.oldPos.x !== u.newPos.x || u.oldPos.y !== u.newPos.y
             );
+
+            if (positionsChanged && moveUpdates.length > 0) {
+                // Update backend
+                const updates = moveUpdates.map(u => ({
+                    id: u.id,
+                    data: { pos_x: u.newPos.x, pos_y: u.newPos.y }
+                }));
+
+                batchUpdateNotesLocal(updates)
+                    .then(() => {
+                        // Record history only after successful backend update
+                        historyState.recordAction({
+                            type: 'MOVE_NOTES',
+                            updates: moveUpdates
+                        });
+                    })
+                    .catch(err => {
+                        console.error('Failed to update note positions: ', err);
+                    });
+            }
+
+            dragStartPositions.clear();
         }
 
         // End box selection - select notes in box
@@ -480,8 +554,21 @@
     async function handleSubmitNote(content: string, noteId?: number): Promise<void> {
         try {
             if (noteId !== undefined) {
-                // Edit existing note
+                // Edit existing note - record old content for undo
+                const note = notesState.items.find(n => n.id === noteId);
+                const oldContent = note?.content || '';
+
                 await updateNoteLocal(noteId, { content });
+
+                // Record history after successful update
+                if (oldContent !== content) {
+                    historyState.recordAction({
+                        type: 'UPDATE_NOTE_CONTENT',
+                        noteId,
+                        oldContent,
+                        newContent: content
+                    });
+                }
             } else {
                 // Create new note
                 if (!viewportEl) return;
@@ -499,13 +586,24 @@
                     camera
                 );
 
-                await createNoteLocal({
+                const noteData = {
                     content,
                     pos_x: position.x,
                     pos_y: position.y,
                     width: noteWidth,
                     height: noteHeight,
                     bg_color: '#fff'
+                }
+
+                await createNoteLocal(noteData);
+
+                // Record history after successful creation
+                // NOTE: We need the created note's ID
+                const createdNote = notesState.items[notesState.items.length -1];
+                historyState.recordAction({
+                    type: 'CREATE_NOTE',
+                    noteId: createdNote.id,
+                    noteData
                 });
             }
         } catch (err) {
@@ -524,7 +622,20 @@
 
     async function handleConfirmDelete(): Promise<void> {
         try {
+            // Capture note data before deletion
+            const notesData = notesToDelete
+                .map(id => notesState.items.find(n => n.id === id))
+                .filter((n): n is Note => n !== undefined);
+
             await deleteNotesLocal(notesToDelete);
+
+            // Record history after successful deletion
+            historyState.recordAction({
+                type: 'DELETE_NOTES',
+                noteIds: notesToDelete,
+                notesData
+            });
+
             selectionState.selectedIds.clear();
             notesToDelete = [];
         } catch (error) {

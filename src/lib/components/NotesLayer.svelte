@@ -1,6 +1,7 @@
 <script lang="ts">
     import { camera } from '$lib/state/cameraState.svelte';
     import { notesState } from '$lib/state/notesState.svelte';
+    import { getVisibleNotes } from '$lib/utils/viewport-culling';
     import Note from './Note.svelte';
 
     // Reactive transform based on camera
@@ -15,13 +16,41 @@
     }
 
     let { onEditNote, onResizeStart, resizingNoteId }: Props = $props();
+
+    // Track viewport dimensions for culling
+    let viewportWidth = $state(0);
+    let viewportHeight = $state(0);
+    let layerEl: HTMLDivElement;
+
+    // Setup ResizeObserver to track viewport size
+    $effect(() => {
+        if (!layerEl) return;
+
+        const resizeObserver = new ResizeObserver(entries => {
+            const rect = entries[0].contentRect;
+            viewportHeight = rect.width;
+            viewportHeight = rect.height;
+        });
+
+        resizeObserver.observe(layerEl.parentElement!);  // Observe parent (viewport)
+
+        return () => resizeObserver.disconnect();
+    });
+
+    // Filter to only visible notes
+    const visibleNotes = $derived(
+        viewportWidth > 0 && viewportHeight > 0
+            ? getVisibleNotes(notesState.items, viewportWidth, viewportHeight, camera)
+            : notesState.items  // Fallback to all notes until viewport size known
+    );
 </script>
 
 <div
+    bind:this={layerEl}
     class="notes-layer"
     style="transform: translate({camera.x}px, {camera.y}px) scale({camera.scale})"
 >
-    {#each notesState.items as note (note.id)}
+    {#each visibleNotes as note (note.id)}
         <Note {note} onEdit={onEditNote} {onResizeStart} isResizing={resizingNoteId === note.id} />
     {/each}
 </div>

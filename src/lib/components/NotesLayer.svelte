@@ -4,11 +4,6 @@
     import { getVisibleNotes } from '$lib/utils/viewport-culling';
     import Note from './Note.svelte';
 
-    // Reactive transform based on camera
-    $effect(() => {
-        // This will reactively update when camera changes
-    });
-
     interface Props {
         onEditNote?: (noteId: number) => void;
         onResizeStart: (noteId: number, e: MouseEvent) => void;
@@ -28,11 +23,14 @@
 
         const resizeObserver = new ResizeObserver(entries => {
             const rect = entries[0].contentRect;
-            viewportHeight = rect.width;
+            viewportWidth = rect.width;
             viewportHeight = rect.height;
         });
 
-        resizeObserver.observe(layerEl.parentElement!);  // Observe parent (viewport)
+        const viewport = layerEl.closest('.viewport');
+        if (viewport) {
+            resizeObserver.observe(viewport);  // Observe parent (viewport)
+        }
 
         return () => resizeObserver.disconnect();
     });
@@ -60,8 +58,8 @@
         position: absolute;
         top: 0;
         left: 0;
-        width: 0px;
-        height: 0px;
+        width: 100%;
+        height: 100%;
         transform-origin: 0 0;
         will-change: transform;
         z-index: 2;

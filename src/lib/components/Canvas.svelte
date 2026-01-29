@@ -17,6 +17,36 @@
     import ConfirmModal from './ConfirmModal.svelte';
     import type { Note } from '$lib/types';
 
+    // NOTE: Temporary leak detection (Chrome only)
+    // ######################################
+    //let leakDetector = $state({
+    //    rafCount: 0,
+    //    eventListenerCount: 0,
+    //    noteCount: 0,
+    //    historySize: 0
+    //});
+    //
+    //$effect(() => {
+    //    const interval = setInterval(() => {
+    //        leakDetector.rafCount = animationFrameId !== null ? 1 : 0;
+    //        leakDetector.noteCount = notesState.items.length;
+    //        leakDetector.historySize = historyState.undoStackSize + historyState.redoStackSize;
+    //
+    //        const memory = (performance as any).memory;
+    //        const heapSize = memory ? (memory.usedJSHeapSize / 1048576).toFixed(2) : 'N/A';
+    //
+    //        console.log('🔍 Leak Check:', {
+    //            RAF_Active: leakDetector.rafCount,
+    //            Notes: leakDetector.noteCount,
+    //            History: leakDetector.historySize,
+    //            Heap: heapSize + ' MB'
+    //        });
+    //    }, 5000); // Log every 5 seconds
+    //
+    //    return () => clearInterval(interval);
+    //});
+    // ######################################
+
     let viewportEl: HTMLDivElement;
     let animationFrameId: number | null = null;
     let isModalOpen = $state(false);

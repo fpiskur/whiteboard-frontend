@@ -5,6 +5,7 @@ export interface Toast {
     message: string;
     type: ToastType;
     duration: number;  // ms
+    timeoutId?: number;
 }
 
 let toasts = $state<Toast[]>([]);
@@ -18,13 +19,23 @@ function addToast(message: string, type: ToastType = 'info', duration: number = 
 
     // Auto-remove after duration
     if (duration > 0) {
-        setTimeout(() => {
+        const timeoutId = setTimeout(() => {
             removeToast(id);
-        }, duration);
+        }, duration) as unknown as number;
+
+        // Store timeout ID so you can cancel it if manually closed
+        toast.timeoutId = timeoutId;
     }
 }
 
 function removeToast(id: number): void {
+    const toast = toasts.find(t => t.id === id);
+
+    // Clear pending timeout if exists
+    if (toast?.timeoutId) {
+        clearTimeout(toast.timeoutId);
+    }
+
     toasts = toasts.filter(t => t.id !== id);
 }
 

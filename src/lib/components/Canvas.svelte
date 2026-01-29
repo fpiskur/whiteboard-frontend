@@ -673,6 +673,12 @@
             cancelAnimationFrame(animationFrameId);
             animationFrameId = null;
         }
+
+        // Clean up zoom timeout
+        if (zoomTimeout !== null) {
+            clearTimeout(zoomTimeout);
+            zoomTimeout = null;
+        }
     })
 </script>
 

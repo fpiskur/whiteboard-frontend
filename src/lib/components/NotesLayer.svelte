@@ -63,5 +63,6 @@
         transform-origin: 0 0;
         will-change: transform;
         z-index: 2;
+        pointer-events: none;
     }
 </style>

@@ -191,6 +191,7 @@
         -webkit-user-select: none;
         transform: translate(var(--tx), var(--ty));
         will-change: transform;
+        pointer-events: auto;
     }
 
     /* Remove focus outline for mouse/pointer interactions */

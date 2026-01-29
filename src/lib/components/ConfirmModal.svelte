@@ -21,6 +21,24 @@
         variant = 'danger'
     }: Props = $props();
 
+    $effect(() => {
+        if (!isOpen) return;
+
+        // Close on Escape key
+        function handleKeyDown(e: KeyboardEvent) {
+            if (e.key === 'Escape') {
+                e.preventDefault();
+                handleCancel();
+            }
+        }
+
+        window.addEventListener('keydown', handleKeyDown);
+
+        return () => {
+            window.removeEventListener('keydown', handleKeyDown);
+        };
+    });
+
     function handleConfirm() {
         onConfirm();
         isOpen = false;
@@ -30,16 +48,7 @@
         onCancel();
         isOpen = false;
     }
-
-    // Close on Escape key
-    function handleKeyDown(e: KeyboardEvent) {
-        if (e.key === 'Escape') {
-            handleCancel();
-        }
-    }
 </script>
-
-<svelte:window onkeydown={handleKeyDown} />
 
 {#if isOpen}
     <div

@@ -22,10 +22,32 @@
         }
     });
 
+    $effect(() => {
+        if (!isOpen) return;
+
+        // Close on Escape key
+        function handleKeyDown(e: KeyboardEvent) {
+            if (e.key === 'Escape') {
+                e.preventDefault();
+                handleCancel();
+            }
+        }
+
+        window.addEventListener('keydown', handleKeyDown);
+
+        return () => {
+            window.removeEventListener('keydown', handleKeyDown);
+        };
+    });
+
     // Action to focus element when it's added to DOM
     function autofocus(node: HTMLElement) {
         node.focus();
-        return {};
+        return {
+            destroy() {
+                // No cleanup needed - focus() is a one-time DOM operation
+            }
+        };
     }
 
     const isEditMode = $derived(editNote !== null);
@@ -47,18 +69,7 @@
         editNote = null;
         isOpen = false;
     }
-
-    // Close on Escape key
-    function handleKeyDown(e: KeyboardEvent) {
-        if (isOpen && e.key === 'Escape') {
-            e.preventDefault();
-            handleCancel();
-        }
-    }
 </script>
-
-<!-- Attach keydown to window, not backdrop -->
-<svelte:window onkeydown={handleKeyDown} />
 
 {#if isOpen}
     <div

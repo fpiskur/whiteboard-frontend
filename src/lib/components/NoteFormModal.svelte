@@ -1,14 +1,17 @@
 <script lang="ts">
     import type { Note } from '$lib/types';
+    import Spinner from './Spinner.svelte';
 
     let {
         isOpen = $bindable(false),
         editNote = $bindable<Note | null>(null),
-        onSubmit
+        onSubmit,
+        isSubmitting = false
     }: {
         isOpen: boolean;
         editNote?: Note | null;
-        onSubmit: (content: string, noteId?: number) => void;
+        onSubmit: (content: string, noteId?: number) => Promise<void>;
+        isSubmitting?: boolean;
     } = $props();
 
     let content = $state('');
@@ -54,10 +57,10 @@
     const modalTitle = $derived(isEditMode ? 'Edit Note' : 'Create a New Note');
     const submitButtonText = $derived(isEditMode ? 'Save Changes' : 'Create Note');
 
-    function handleSubmit(e: Event) {
+    async function handleSubmit(e: Event) {
         e.preventDefault();
         if (content.trim()) {
-            onSubmit(content.trim(), editNote?.id);
+            await onSubmit(content.trim(), editNote?.id);
             content = ''; // Reset form
             editNote = null;
             isOpen = false;
@@ -65,6 +68,7 @@
     }
 
     function handleCancel() {
+        if (isSubmitting) return;  // Prevent closing during submission
         content = '';
         editNote = null;
         isOpen = false;
@@ -98,14 +102,20 @@
                         bind:value={content}
                         placeholder="Enter note content..."
                         rows="6"
+                        disabled={isSubmitting}
                     ></textarea>
                 </label>
                 <div class="modal-actions">
-                    <button type="button" class="btn-secondary" onclick={handleCancel}>
+                    <button type="button" class="btn-secondary" onclick={handleCancel} disabled={isSubmitting}>
                         Cancel
                     </button>
-                    <button type="submit" class="btn-primary" disabled={!content.trim()}>
-                        {submitButtonText}
+                    <button type="submit" class="btn-primary" disabled={!content.trim() || isSubmitting}>
+                        {#if isSubmitting}
+                            <Spinner size={16} color="white" />
+                            {isEditMode ? 'Saving...' : 'Creating...'}
+                        {:else}
+                            {submitButtonText}
+                        {/if}
                     </button>
                 </div>
             </form>
@@ -116,5 +126,12 @@
 <style>
     textarea {
         resize: vertical;
+    }
+
+    button {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        justify-content: center;
     }
 </style>

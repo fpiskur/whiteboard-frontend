@@ -15,6 +15,7 @@
     import CreateNoteFAB from './CreateNoteFAB.svelte';
     import NoteFormModal from './NoteFormModal.svelte';
     import ConfirmModal from './ConfirmModal.svelte';
+    import Spinner from './Spinner.svelte';
     import type { Note } from '$lib/types';
 
     // NOTE: Temporary leak detection (Chrome only)
@@ -47,12 +48,15 @@
     //});
     // ######################################
 
-    let viewportEl: HTMLDivElement;
+    let viewportEl = $state<HTMLDivElement | undefined>(undefined);
     let animationFrameId: number | null = null;
     let isModalOpen = $state(false);
     let editingNote = $state<Note | null>(null);
     let showDeleteConfirm = $state(false);
     let notesToDelete = $state<number[]>([]);
+
+    let isSubmittingNote = $state(false);
+    let isDeletingNotes = $state(false);
 
     // State for undo/redo
     let dragStartPositions = new Map<number, { x: number; y: number }>();
@@ -582,9 +586,10 @@
     }
 
     async function handleSubmitNote(content: string, noteId?: number): Promise<void> {
+        isSubmittingNote = true;
         try {
             if (noteId !== undefined) {
-                // Edit existing note - record old content for undo
+                // Update existing note - record old content for undo
                 const note = notesState.items.find(n => n.id === noteId);
                 const oldContent = note?.content || '';
 
@@ -639,6 +644,8 @@
         } catch (err) {
             console.error('Failed to save note: ', err);
             // TODO: Show error message to user (Step 19)
+        } finally {
+            isSubmittingNote = false;
         }
     }
 
@@ -651,6 +658,7 @@
     }
 
     async function handleConfirmDelete(): Promise<void> {
+        isDeletingNotes = true;
         try {
             // Capture note data before deletion
             const notesData = notesToDelete
@@ -671,6 +679,8 @@
         } catch (error) {
             console.error('Failed to delete notes: ', error);
             // TODO: Show error toast (Step 19)
+        } finally {
+            isDeletingNotes = false;
         }
     }
 
@@ -720,44 +730,56 @@
     on:wheel|nonpassive={handleWheel}
 />
 
-<!-- role, tabindex and aria-label are added for a11y compliance -->
-<!-- svelte-ignore a11y_no_noninteractive_tabindex -->
-<!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
-<div
-    class="viewport"
-    bind:this={viewportEl}
-    role="application"
-    tabindex="0"
-    aria-label="Interactive canvas workspace"
-    class:space-drag={keyboardState.space && !dragState.targetId && !selectionState.box.isBoxSelecting}
-    class:middle-mouse-pan={panState.isMiddleMouse}
-    class:box-selecting={selectionState.box.isBoxSelecting}
-    class:resizing={resizeState.targetId !== null}
-    onmousedown={handleMouseDown}
->
-    <GridCanvas />
-    <NotesLayer
-        onEditNote={handleEditNote}
-        onResizeStart={handleResizeStart}
-        resizingNoteId={resizeState.targetId}
-    />
-    <OverlayCanvas />
-</div>
+{#if notesState.loading}
+    <div class="loading-container">
+        <Spinner size={40} />
+        <p>Loading notes...</p>
+    </div>
+{:else if notesState.error}
+    <div class="error-container">
+        <p>Error: {notesState.error}</p>
+    </div>
+{:else}
+    <!-- role, tabindex and aria-label are added for a11y compliance -->
+    <!-- svelte-ignore a11y_no_noninteractive_tabindex -->
+    <!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
+    <div
+        class="viewport"
+        bind:this={viewportEl}
+        role="application"
+        tabindex="0"
+        aria-label="Interactive canvas workspace"
+        class:space-drag={keyboardState.space && !dragState.targetId && !selectionState.box.isBoxSelecting}
+        class:middle-mouse-pan={panState.isMiddleMouse}
+        class:box-selecting={selectionState.box.isBoxSelecting}
+        class:resizing={resizeState.targetId !== null}
+        onmousedown={handleMouseDown}
+    >
+        <GridCanvas />
+        <NotesLayer
+            onEditNote={handleEditNote}
+            onResizeStart={handleResizeStart}
+            resizingNoteId={resizeState.targetId}
+        />
+        <OverlayCanvas />
+    </div>
 
-<!-- FAB and Modal -->
-<CreateNoteFAB onclick={() => isModalOpen = true} />
-<NoteFormModal bind:isOpen={isModalOpen} bind:editNote={editingNote} onSubmit={handleSubmitNote} />
-<ConfirmModal
-    bind:isOpen={showDeleteConfirm}
-    title="Delete {notesToDelete.length === 1 ? 'Note' : 'Notes'}"
-    message={notesToDelete.length === 1
-        ? 'Are you sure you want to delete this note? This action cannot be undone.'
-        : `Are you sure you want to delete ${notesToDelete.length} notes? This action cannot be undone.`}
-    confirmText="Delete"
-    variant="danger"
-    onConfirm={handleConfirmDelete}
-    onCancel={handleCancelDelete}
-/>
+    <!-- FAB and Modal -->
+    <CreateNoteFAB onclick={() => isModalOpen = true} />
+    <NoteFormModal bind:isOpen={isModalOpen} bind:editNote={editingNote} onSubmit={handleSubmitNote} isSubmitting={isSubmittingNote} />
+    <ConfirmModal
+        bind:isOpen={showDeleteConfirm}
+        title="Delete {notesToDelete.length === 1 ? 'Note' : 'Notes'}"
+        message={notesToDelete.length === 1
+            ? 'Are you sure you want to delete this note? This action cannot be undone.'
+            : `Are you sure you want to delete ${notesToDelete.length} notes? This action cannot be undone.`}
+        confirmText="Delete"
+        variant="danger"
+        onConfirm={handleConfirmDelete}
+        onCancel={handleCancelDelete}
+        isProcessing={isDeletingNotes}
+    />
+{/if}
 
 <style>
     .viewport {
@@ -768,6 +790,28 @@
         height: 100%;
         overflow: hidden;
         background: var(--color-background);
+    }
+
+    .loading-container {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        height: 100vh;
+        gap: 1rem;
+    }
+
+    .loading-container p {
+        color: #666;
+        font-size: 0.875rem;
+    }
+
+    .error-container {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        height: 100vh;
+        color: #dc2626;
     }
 
     .viewport.space-drag {

@@ -205,10 +205,6 @@
         outline-offset: 2px;
     }
 
-    .note.selected {
-        background-color: #f0f8ff;
-    }
-
     .note-content {
         width: 100%;
         height: 100%;

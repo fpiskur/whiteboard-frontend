@@ -5,6 +5,7 @@
     import { selectionState, keyboardState } from '$lib/state/selectionState.svelte';
     import { mouseState, dragState, panState, clickState, resizeState } from '$lib/state/interactionState.svelte';
     import { historyState } from '$lib/state/historyState.svelte';
+    import { toastState } from '$lib/state/toastState.svelte';
     import { screenToWorld, getCenteredNotePosition } from '$lib/utils/canvas-utils';
     import { setMouseDownPosition, setMousePosition } from '$lib/utils/viewport-utils';
     import { getNotesInBox } from '$lib/utils/collision-utils';
@@ -319,13 +320,6 @@
 
     // Mouse state tracking
     function handleMouseDown(e: MouseEvent) {
-        // Force sync keyboardState
-        // -- The issue with stale keyboardState is solved with checking if e.key === primaryModifierKey
-        // instead of e.ctrlKey in handleKeyDown and handleKeyUp, but this redundancy also allows remapped
-        // modifier keys to work (e.key returns 'CapsLock' even thought it's remapped to 'Control' in the OS) --
-        keyboardState.ctrl = e[primaryModifierFlag];
-        keyboardState.shift = e.shiftKey;
-
         if (!viewportEl) return;
 
         const rect = viewportEl.getBoundingClientRect();
@@ -596,8 +590,11 @@
             if (noteId !== undefined) {
                 // Update existing note - record old content for undo
                 const note = notesState.items.find(n => n.id === noteId);
-                const oldContent = note?.content || '';
+                if (!note) {
+                    throw new Error('Note not found');
+                }
 
+                const oldContent = note.content;
                 await updateNoteLocal(noteId, { content });
 
                 // Record history after successful update
@@ -609,9 +606,13 @@
                         newContent: content
                     });
                 }
+
+                toastState.showSuccess('Note updated');
             } else {
                 // Create new note
-                if (!viewportEl) return;
+                if (!viewportEl) {
+                    throw new Error('Canvas not ready');
+                }
 
                 const rect = viewportEl.getBoundingClientRect();
                 const noteWidth = NOTE_SIZE.DEFAULT_WIDTH;
@@ -645,10 +646,12 @@
                     noteId: createdNote.id,
                     noteData
                 });
+
+                toastState.showSuccess('Note created');
             }
         } catch (err) {
             console.error('Failed to save note: ', err);
-            // TODO: Show error message to user (Step 19)
+            toastState.showError('Faled to save note');
         } finally {
             isSubmittingNote = false;
         }
@@ -680,10 +683,14 @@
             });
 
             selectionState.selectedIds.clear();
+
+            const count = notesToDelete.length;
+            toastState.showSuccess(`${count} note${count > 1 ? 's' : ''} deleted`);
+
             notesToDelete = [];
         } catch (error) {
             console.error('Failed to delete notes: ', error);
-            // TODO: Show error toast (Step 19)
+            toastState.showError('Failed to delete notes');
         } finally {
             isDeletingNotes = false;
         }

@@ -62,7 +62,8 @@
         // Check if clicking resize handle
         const target = e.target as HTMLElement;
         if (target.closest('.resize-handle')) {
-            // TODO: Handle resize in future step
+            // Don't start drag when clicking resize handle
+            // (resize is handled by handleResizeMouseDown)
             return;
         }
 

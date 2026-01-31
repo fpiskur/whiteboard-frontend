@@ -49,6 +49,9 @@ function undo(): void {
         try {
             await performUndo(action);
             redoStack.push(action);
+
+            const actionMessage = getUndoActionMessage(action);
+            toastState.showSuccess(actionMessage);
         } catch (error) {
             console.error('Undo failed: ', error);
             // Re-add action to undo stack on failure
@@ -79,13 +82,16 @@ function redo(): void {
         try {
             await performRedo(action);
             undoStack.push(action);
+
+            const actionMessage = getRedoActionMessage(action);
+            toastState.showSuccess(actionMessage);
         } catch (error) {
             console.error('Redo failed: ', error);
             // Re-add action to redo stack on failure
             redoStack.push(action);
 
             // Show toast notification
-            toastState.showError('Faled to redo action. Please check your connection.');
+            toastState.showError('Failed to redo action. Please check your connection.');
         } finally {
             isProcessing = false;
         }
@@ -176,6 +182,34 @@ async function performRedo(action: HistoryAction): Promise<void> {
                 height: action.newSize.height
             });
             break;
+    }
+}
+
+function getUndoActionMessage(action: HistoryAction): string {
+    switch (action.type) {
+        case 'CREATE_NOTE': return 'Note removed';
+        case 'DELETE_NOTES':
+            const count = action.noteIds.length;
+            return `${count} note${count > 1 ? 's' : ''} recreated`;
+        case 'UPDATE_NOTE_CONTENT': return 'Note content changed';
+        case 'MOVE_NOTES':
+            const moveCount = action.updates.length;
+            return `Position changed for ${moveCount} note${moveCount > 1 ? 's' : ''}`
+        case 'RESIZE_NOTE': return 'Note size changed'
+    }
+}
+
+function getRedoActionMessage(action: HistoryAction): string {
+    switch (action.type) {
+        case 'CREATE_NOTE': return 'Note recreated';
+        case 'DELETE_NOTES':
+            const count = action.noteIds.length;
+            return `${count} note${count > 1 ? 's' : ''} deleted`;
+        case 'UPDATE_NOTE_CONTENT': return 'Note content changed';
+        case 'MOVE_NOTES':
+            const moveCount = action.updates.length;
+            return `Position changed for ${moveCount} note${moveCount > 1 ? 's' : ''}`
+        case 'RESIZE_NOTE': return 'Note size changed'
     }
 }
 

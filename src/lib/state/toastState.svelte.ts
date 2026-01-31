@@ -39,20 +39,20 @@ function removeToast(id: number): void {
     toasts = toasts.filter(t => t.id !== id);
 }
 
-// Cenvenience methods
-function showSuccess(message: string, duration?: number): void {
+// Convenience methods
+function showSuccess(message: string, duration: number = 3000): void {
     addToast(message, 'success', duration);
 }
 
-function showError(message: string, duration?: number): void {
+function showError(message: string, duration: number = 6000): void {
     addToast(message, 'error', duration);
 }
 
-function showWarning(message: string, duration?: number): void {
+function showWarning(message: string, duration: number = 5000): void {
     addToast(message, 'warning', duration);
 }
 
-function showInfo(message: string, duration?: number): void {
+function showInfo(message: string, duration: number = 4000): void {
     addToast(message, 'info', duration);
 }
 

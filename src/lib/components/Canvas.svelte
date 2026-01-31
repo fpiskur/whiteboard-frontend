@@ -8,6 +8,7 @@
     import { screenToWorld, getCenteredNotePosition } from '$lib/utils/canvas-utils';
     import { setMouseDownPosition, setMousePosition } from '$lib/utils/viewport-utils';
     import { getNotesInBox } from '$lib/utils/collision-utils';
+    import { primaryModifierKey, primaryModifierFlag } from '$lib/utils/keyboard-utils';
     import { AUTO_PAN, INTERACTION, NOTE_SIZE } from '$lib/state/constants';
     import GridCanvas from './GridCanvas.svelte';
     import OverlayCanvas from './OverlayCanvas.svelte';
@@ -226,7 +227,7 @@
 
     let zoomTimeout: number | null = null;
     function handleWheel(e: WheelEvent) {
-        if (!e.ctrlKey) return;
+        if (!e[primaryModifierFlag]) return;
         e.preventDefault();
 
         // Get cursor position in world coordinates before zoom
@@ -257,8 +258,8 @@
 
     // Keyboard state tracking
     function handleKeyDown(e: KeyboardEvent) {
-        keyboardState.ctrl = e.ctrlKey;
-        keyboardState.shift = e.shiftKey;
+        if (e.key === primaryModifierKey) keyboardState.ctrl = true;
+        if (e.key === 'Shift') keyboardState.shift = true;
 
         if (e.key === ' ') {
             // Don't handle space during resize
@@ -278,14 +279,14 @@
         }
 
         // Undo: Ctrl+Z
-        if (e.ctrlKey && e.key === 'z' && !e.shiftKey) {
+        if (e[primaryModifierFlag] && e.key === 'z' && !e.shiftKey) {
             e.preventDefault();
             historyState.undo();
             return;
         }
 
         // Redo: Ctrl+Shift+Z or Ctrl+Y
-        if (e.ctrlKey && ((e.key === 'Z' && e.shiftKey) || e.key === 'y')) {
+        if (e[primaryModifierFlag] && ((e.key === 'Z' && e.shiftKey) || e.key === 'y')) {
             e.preventDefault();
             historyState.redo();
             return;
@@ -296,7 +297,7 @@
             selectionState.selectedIds.clear();
         }
 
-        if (e.ctrlKey && e.key === 'a') {
+        if (e[primaryModifierFlag] && e.key === 'a') {
             e.preventDefault();
             notesState.items.forEach(note => {
                 selectionState.selectedIds.add(note.id);
@@ -311,16 +312,20 @@
     }
 
     function handleKeyUp(e: KeyboardEvent) {
-        keyboardState.ctrl = e.ctrlKey;
-        keyboardState.shift = e.shiftKey;
-
-        if (e.key === ' ') {
-            keyboardState.space = false;
-        }
+        if (e.key === primaryModifierKey) keyboardState.ctrl = false;
+        if (e.key === 'Shift') keyboardState.shift = false;
+        if (e.key === ' ') keyboardState.space = false;
     }
 
     // Mouse state tracking
     function handleMouseDown(e: MouseEvent) {
+        // Force sync keyboardState
+        // -- The issue with stale keyboardState is solved with checking if e.key === primaryModifierKey
+        // instead of e.ctrlKey in handleKeyDown and handleKeyUp, but this redundancy also allows remapped
+        // modifier keys to work (e.key returns 'CapsLock' even thought it's remapped to 'Control' in the OS) --
+        keyboardState.ctrl = e[primaryModifierFlag];
+        keyboardState.shift = e.shiftKey;
+
         if (!viewportEl) return;
 
         const rect = viewportEl.getBoundingClientRect();

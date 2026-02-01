@@ -599,12 +599,14 @@
                 await updateNoteLocal(noteId, { content, bg_color: bgColor });
 
                 // Record history after successful update
-                if (oldContent !== content) {
+                if (oldContent !== content || oldColor !== bgColor) {
                     historyState.recordAction({
-                        type: 'UPDATE_NOTE_CONTENT',
+                        type: 'UPDATE_NOTE',
                         noteId,
                         oldContent,
-                        newContent: content
+                        newContent: content,
+                        oldColor,
+                        newColor: bgColor
                     });
                 }
 

@@ -6,7 +6,7 @@ import type { Note } from '$lib/types';
 type HistoryAction =
     | { type: 'CREATE_NOTE'; noteId: number; noteData: Omit<Note, 'id'> }
     | { type: 'DELETE_NOTES'; noteIds: number[]; notesData: Note[] }
-    | { type: 'UPDATE_NOTE_CONTENT'; noteId: number; oldContent: string; newContent: string }
+    | { type: 'UPDATE_NOTE'; noteId: number; oldContent: string; newContent: string, oldColor: string, newColor: string }
     | { type: 'MOVE_NOTES'; updates: Array<{ id: number; oldPos: { x: number; y: number }; newPos: { x: number; y: number } }> }
     | { type: 'RESIZE_NOTE'; noteId: number; oldSize: { width: number; height: number }; newSize: { width: number; height: number } };
 
@@ -124,9 +124,9 @@ async function performUndo(action: HistoryAction): Promise<void> {
             }
             break;
 
-        case 'UPDATE_NOTE_CONTENT':
+        case 'UPDATE_NOTE':
             // Restore old content
-            await updateNoteLocal(action.noteId, { content: action.oldContent });
+            await updateNoteLocal(action.noteId, { content: action.oldContent, bg_color: action.oldColor });
             break;
 
         case 'MOVE_NOTES':
@@ -161,9 +161,9 @@ async function performRedo(action: HistoryAction): Promise<void> {
             await deleteNotesLocal(action.noteIds);
             break;
 
-        case 'UPDATE_NOTE_CONTENT':
+        case 'UPDATE_NOTE':
             // Apply new content
-            await updateNoteLocal(action.noteId, { content: action.newContent });
+            await updateNoteLocal(action.noteId, { content: action.newContent, bg_color: action.newColor });
             break;
 
         case 'MOVE_NOTES':
@@ -191,7 +191,7 @@ function getUndoActionMessage(action: HistoryAction): string {
         case 'DELETE_NOTES':
             const count = action.noteIds.length;
             return `${count} note${count > 1 ? 's' : ''} recreated`;
-        case 'UPDATE_NOTE_CONTENT': return 'Note content changed';
+        case 'UPDATE_NOTE': return 'Note updated';
         case 'MOVE_NOTES':
             const moveCount = action.updates.length;
             return `Position changed for ${moveCount} note${moveCount > 1 ? 's' : ''}`
@@ -205,7 +205,7 @@ function getRedoActionMessage(action: HistoryAction): string {
         case 'DELETE_NOTES':
             const count = action.noteIds.length;
             return `${count} note${count > 1 ? 's' : ''} deleted`;
-        case 'UPDATE_NOTE_CONTENT': return 'Note content changed';
+        case 'UPDATE_NOTE': return 'Note updated';
         case 'MOVE_NOTES':
             const moveCount = action.updates.length;
             return `Position changed for ${moveCount} note${moveCount > 1 ? 's' : ''}`

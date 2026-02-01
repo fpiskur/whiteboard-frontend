@@ -45,4 +45,10 @@
     --color-theme-light-pink: #ff5ad2;
     --color-theme-light-gray: #dedede;
     --color-theme-light-default: #ffffff;
+
+    /* Color theme text colors */
+    --color-theme-light-text: #141414;  /* Dark text for light backgrounds */
+
+    /* Active theme text color (will change with theme toggle) */
+    --color-note-text: var(--color-theme-light-text);  /* Default to light theme */
 }

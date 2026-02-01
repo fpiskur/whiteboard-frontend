@@ -9,7 +9,6 @@ export type Camera = {
 export type CameraRenderFlags = {
     needsRender: boolean;
     needsGridRender: boolean;
-    //needsBorderUpdate: boolean; // Perplexity suggested I can remove this because Svelte will re-render components when their reactive state changes
     isLoopActive: boolean;
 };
 
@@ -22,7 +21,6 @@ export const camera = $state<Camera>({
 export const cameraRender = $state<CameraRenderFlags>({
     needsRender: true,
     needsGridRender: true,
-    //needsBorderUpdate: true,
     isLoopActive: false
 });
 
@@ -37,5 +35,4 @@ export function setCamera(x: number, y: number, scale: number) {
     camera.scale = clampScale(scale);
     cameraRender.needsRender = true;
     cameraRender.needsGridRender = true;
-    //cameraRender.needsBorderUpdate = true;
 }

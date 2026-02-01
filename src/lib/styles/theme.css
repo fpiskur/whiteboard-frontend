@@ -33,4 +33,16 @@
     /* Font */
     --font-size-sm: 14px;
     --font-size-md: 20px;
+
+    /* Color theme backgrounds */
+    --color-theme-light-red: #ff6868;
+    --color-theme-light-orange: #f4a446;
+    --color-theme-light-yellow: #e6e430;
+    --color-theme-light-green: #3fee36;
+    --color-theme-light-cyan: #36dfcd;
+    --color-theme-light-blue: #6982ff;
+    --color-theme-light-purple: #bc4aff;
+    --color-theme-light-pink: #ff5ad2;
+    --color-theme-light-gray: #dedede;
+    --color-theme-light-default: #ffffff;
 }

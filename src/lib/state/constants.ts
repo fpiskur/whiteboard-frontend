@@ -58,3 +58,23 @@ export const AUTO_PAN = {
   MAX_SPEED: 15,    // px per frame at the very edge
   MIN_SPEED: 1      // px per frame when just outsize edge
 } as const;
+
+export const COLOR_PALETTES = {
+  light: [
+    { name: 'White', value: getCSSVariable('--color-theme-light-default') },
+    { name: 'Yellow', value: getCSSVariable('--color-theme-light-yellow') },
+    { name: 'Orange', value: getCSSVariable('--color-theme-light-orange') },
+    { name: 'Red', value: getCSSVariable('--color-theme-light-red') },
+    { name: 'Pink', value: getCSSVariable('--color-theme-light-pink') },
+    { name: 'Purple', value: getCSSVariable('--color-theme-light-purple') },
+    { name: 'Blue', value: getCSSVariable('--color-theme-light-blue') },
+    { name: 'Cyan', value: getCSSVariable('--color-theme-light-cyan') },
+    { name: 'Green', value: getCSSVariable('--color-theme-light-green') },
+    { name: 'Gray', value: getCSSVariable('--color-theme-light-gray') },
+  ],
+  dark: []
+} as const;
+
+export function getColorPalette(theme: 'light' | 'dark' = 'light') {
+  return COLOR_PALETTES[theme];
+}

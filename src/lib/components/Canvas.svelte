@@ -584,7 +584,7 @@
         }
     }
 
-    async function handleSubmitNote(content: string, noteId?: number): Promise<void> {
+    async function handleSubmitNote(content: string, bgColor: string, noteId?: number): Promise<void> {
         isSubmittingNote = true;
         try {
             if (noteId !== undefined) {
@@ -595,7 +595,8 @@
                 }
 
                 const oldContent = note.content;
-                await updateNoteLocal(noteId, { content });
+                const oldColor = note.bg_color;
+                await updateNoteLocal(noteId, { content, bg_color: bgColor });
 
                 // Record history after successful update
                 if (oldContent !== content) {
@@ -633,7 +634,7 @@
                     pos_y: position.y,
                     width: noteWidth,
                     height: noteHeight,
-                    bg_color: '#fff'
+                    bg_color: bgColor
                 }
 
                 await createNoteLocal(noteData);

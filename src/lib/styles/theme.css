@@ -1,4 +1,5 @@
 :root {
+    /****** Light mode ******/
     /* Colors */
     --color-primary: #007acc;
     --color-primary-hover: #0066aa;
@@ -8,20 +9,9 @@
     --color-danger: #dc2626;
     --color-danger-disabled: #b91c1c;
     --color-border: #ddd;
-    --color-text: #333;
+    --color-text: #141414;
     --color-text-muted: #555;
     --color-background: #f5f5f5;
-
-    /* Spacing */
-    --spacing-xs: 8px;
-    --spacing-sm: 12px;
-    --spacing-md: 20px;
-    --spacing-lg: 24px;
-    --spacing-xl: 40px;
-
-    /* Border radius */
-    --radius-sm: 4px;
-    --radius-md: 8px;
 
     /* Shadows */
     --shadow-xs: 0 0 0 3px rgba(0, 122, 204, 0.1);
@@ -30,11 +20,7 @@
     --shadow-lg: 0 6px 16px rgba(0, 122, 204, 0.5);
     --shadow-xl: 0 8px 32px rgba(0, 0, 0, 0.2);
 
-    /* Font */
-    --font-size-sm: 14px;
-    --font-size-md: 20px;
-
-    /* Color theme backgrounds */
+    /* Color theme note backgrounds */
     --color-theme-light-red: #ff6868;
     --color-theme-light-orange: #f4a446;
     --color-theme-light-yellow: #e6e430;
@@ -46,9 +32,54 @@
     --color-theme-light-gray: #dedede;
     --color-theme-light-default: #ffffff;
 
-    /* Color theme text colors */
-    --color-theme-light-text: #141414;  /* Dark text for light backgrounds */
+    /****** Defaults ******/
+    /* Spacing */
+    --spacing-xs: 8px;
+    --spacing-sm: 12px;
+    --spacing-md: 20px;
+    --spacing-lg: 24px;
+    --spacing-xl: 40px;
 
-    /* Active theme text color (will change with theme toggle) */
-    --color-note-text: var(--color-theme-light-text);  /* Default to light theme */
+    /* Border radius */
+    --radius-sm: 4px;
+    --radius-md: 8px;
+
+    /* Font */
+    --font-size-sm: 14px;
+    --font-size-md: 20px;
+}
+
+[data-theme='dark'] {
+    /****** Light mode ******/
+    /* Colors */
+    --color-primary: #64b5f6;
+    --color-primary-hover: #42a5f5;
+    --color-primary-disabled: #ccc;
+    --color-secondary: #f0f0f0;
+    --color-secondary-hover: #e0e0e0;
+    --color-danger: #ef5350;
+    --color-danger-disabled: #b91c1c;
+    --color-border: #ddd;
+    --color-text: #fff;
+    --color-text-muted: #a0a0a0;
+    --color-background: #0a0a0a;
+
+    /* Shadows */
+    --shadow-xs: 0 0 0 3px rgba(0, 122, 204, 0.1);
+    --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.3);
+    --shadow-md: 0 4px 12px rgba(0, 122, 204, 0.4);
+    --shadow-lg: 0 6px 16px rgba(0, 122, 204, 0.5);
+    --shadow-xl: 0 8px 32px rgba(0, 0, 0, 0.6);
+
+    /* Color theme note backgrounds */
+    --color-theme-dark-red: #530e0e;
+    --color-theme-dark-orange: #563712;
+    --color-theme-dark-yellow: #53550c;
+    --color-theme-dark-green: #155112;
+    --color-theme-dark-cyan: #0d4f48;
+    --color-theme-dark-blue: #152159;
+    --color-theme-dark-purple: #3b1252;
+    --color-theme-dark-pink: #4f103e;
+    --color-theme-dark-gray: #404040;
+    --color-theme-dark-default: #1c1c1c;
 }

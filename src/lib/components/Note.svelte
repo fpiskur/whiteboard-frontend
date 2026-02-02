@@ -214,7 +214,7 @@
         word-wrap: break-word;
         scrollbar-width: auto;
         scrollbar-color: rgba(200, 200, 200, 0.3) transparent;
-        color: var(--color-note-text);
+        color: var(--color-text);
     }
 
     .resize-handle {

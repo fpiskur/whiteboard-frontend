@@ -72,7 +72,18 @@ export const COLOR_PALETTES = {
     { name: 'Green', value: getCSSVariable('--color-theme-light-green') },
     { name: 'Gray', value: getCSSVariable('--color-theme-light-gray') },
   ],
-  dark: []
+  dark: [
+    { name: 'Black', value: getCSSVariable('--color-theme-dark-default') },
+    { name: 'Yellow', value: getCSSVariable('--color-theme-dark-yellow') },
+    { name: 'Orange', value: getCSSVariable('--color-theme-dark-orange') },
+    { name: 'Red', value: getCSSVariable('--color-theme-dark-red') },
+    { name: 'Pink', value: getCSSVariable('--color-theme-dark-pink') },
+    { name: 'Purple', value: getCSSVariable('--color-theme-dark-purple') },
+    { name: 'Blue', value: getCSSVariable('--color-theme-dark-blue') },
+    { name: 'Cyan', value: getCSSVariable('--color-theme-dark-cyan') },
+    { name: 'Green', value: getCSSVariable('--color-theme-dark-green') },
+    { name: 'Gray', value: getCSSVariable('--color-theme-dark-gray') },
+  ]
 } as const;
 
 export function getColorPalette(theme: 'light' | 'dark' = 'light') {

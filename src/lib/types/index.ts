@@ -5,7 +5,7 @@ export interface NoteAPIResponse {
     width: string;
     height: string;
     content: string;
-    bg_color: string;
+    color_index: string;  // Rails enum string: 'default' | 'blue' | ...
     created_at?: string;
     updated_at?: string;
 }
@@ -17,7 +17,7 @@ export interface Note {
     width: number;
     height: number;
     content: string;
-    bg_color: string;
+    color_index: number;
     created_at?: string;
     updated_at?: string;
 }
@@ -28,7 +28,7 @@ export interface CreateNoteData {
     width?: number;
     height?: number;
     content: string;
-    bg_color?: string;
+    color_index?: number;
 }
 
 export interface UpdateNoteData {
@@ -37,7 +37,7 @@ export interface UpdateNoteData {
     width?: number;
     height?: number;
     content?: string;
-    bg_color?: string;
+    color_index?: number;
 }
 
 export interface ApiError {

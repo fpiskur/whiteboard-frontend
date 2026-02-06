@@ -584,7 +584,7 @@
         }
     }
 
-    async function handleSubmitNote(content: string, bgColor: string, noteId?: number): Promise<void> {
+    async function handleSubmitNote(content: string, colorIndex: number, noteId?: number): Promise<void> {
         isSubmittingNote = true;
         try {
             if (noteId !== undefined) {
@@ -595,18 +595,18 @@
                 }
 
                 const oldContent = note.content;
-                const oldColor = note.bg_color;
-                await updateNoteLocal(noteId, { content, bg_color: bgColor });
+                const oldColor = note.color_index;
+                await updateNoteLocal(noteId, { content, color_index: colorIndex });
 
                 // Record history after successful update
-                if (oldContent !== content || oldColor !== bgColor) {
+                if (oldContent !== content || oldColor !== colorIndex) {
                     historyState.recordAction({
                         type: 'UPDATE_NOTE',
                         noteId,
                         oldContent,
                         newContent: content,
                         oldColor,
-                        newColor: bgColor
+                        newColor: colorIndex
                     });
                 }
 
@@ -636,7 +636,7 @@
                     pos_y: position.y,
                     width: noteWidth,
                     height: noteHeight,
-                    bg_color: bgColor
+                    color_index: colorIndex
                 }
 
                 await createNoteLocal(noteData);

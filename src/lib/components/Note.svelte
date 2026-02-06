@@ -7,6 +7,7 @@
     import { COLORS, BORDER, INTERACTION, RESIZE_HANDLE } from '$lib/state/constants';
     import { screenToWorld } from '$lib/utils/canvas-utils';
     import { getViewportRect, setMouseDownPosition } from '$lib/utils/viewport-utils';
+    import { getNoteColor } from '$lib/utils/theme-utils';
 
     interface Props {
         note: NoteType;
@@ -44,6 +45,8 @@
             ? `0 0 0 ${shadowWidthPx}px ${COLORS.SELECTION}, 0 2px 8px rgba(0,0,0,0.1)`
             : `0 0 0 ${borderWidthPx}px ${COLORS.NOTE_BORDER}, 0 2px 8px rgba(0,0,0,0.1)`
     );
+
+    const backgroundColor = $derived(getNoteColor(note.color_index));
 
     function handleMouseDown(e: MouseEvent) {
         // Exit middle mouse panning on any mouse button press
@@ -162,7 +165,7 @@
         --ty: {note.pos_y}px;
         width: {note.width}px;
         height: {note.height}px;
-        background-color: {note.bg_color};
+        background-color: {backgroundColor};
         box-shadow: {boxShadow};
     "
     onmousedown={handleMouseDown}

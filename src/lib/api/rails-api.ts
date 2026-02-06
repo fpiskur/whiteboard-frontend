@@ -1,7 +1,21 @@
 import { PUBLIC_API_URL } from '$env/static/public';
+import { COLOR_PALETTES } from '$lib/state/constants';
 import type { NoteAPIResponse, Note, CreateNoteData, UpdateNoteData, ApiError } from '$lib/types';
 
 const API_BASE = PUBLIC_API_URL;
+
+const COLOR_INDEX_MAP: Record<string, number> = {
+    default: 0,
+    yellow: 1,
+    orange: 2,
+    red: 3,
+    pink: 4,
+    purple: 5,
+    blue: 6,
+    cyan: 7,
+    green: 8,
+    gray: 9,
+};
 
 // Helper to normalize API response (because decimals are returned as string)
 function normalizeNote(apiNote: NoteAPIResponse): Note {
@@ -10,7 +24,8 @@ function normalizeNote(apiNote: NoteAPIResponse): Note {
         pos_x: Number(apiNote.pos_x),
         pos_y: Number(apiNote.pos_y),
         width: Number(apiNote.width),
-        height: Number(apiNote.height)
+        height: Number(apiNote.height),
+        color_index: COLOR_INDEX_MAP[apiNote.color_index] ?? 0
     };
 }
 

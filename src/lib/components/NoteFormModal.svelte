@@ -1,6 +1,7 @@
 <script lang="ts">
     import type { Note } from '$lib/types';
     import { getColorPalette } from '$lib/state/constants';
+    import { themeState } from '$lib/state/themeState.svelte';
     import Spinner from './Spinner.svelte';
 
     let {
@@ -11,24 +12,24 @@
     }: {
         isOpen: boolean;
         editNote?: Note | null;
-        onSubmit: (content: string, bgColor: string, noteId?: number) => Promise<void>;
+        onSubmit: (content: string, colorIndex: number, noteId?: number) => Promise<void>;
         isSubmitting?: boolean;
     } = $props();
 
     let content = $state('');
-    let selectedColor = $state('#ffffff');
+    let selectedColorIndex = $state(0);
 
     // Get available colors
-    const availableColors = getColorPalette('light');  // TODO: Later: getColorPalette(currentTheme);
+    const availableColors = $derived(getColorPalette(themeState.isDark ? 'dark' : 'light'));
 
     // Sync content and color when editing
     $effect(() => {
         if (editNote) {
             content = editNote.content;
-            selectedColor = editNote.bg_color;
+            selectedColorIndex = editNote.color_index;
         } else {
             content = '';
-            selectedColor = '#ffffff';  // TODO: later pick the theme's default color
+            selectedColorIndex = 0;
         }
     });
 
@@ -67,9 +68,9 @@
     async function handleSubmit(e: Event) {
         e.preventDefault();
         if (content.trim()) {
-            await onSubmit(content.trim(), selectedColor, editNote?.id);
+            await onSubmit(content.trim(), selectedColorIndex, editNote?.id);
             content = ''; // Reset form
-            selectedColor = '#ffffff';  // TODO: later add theme default color
+            selectedColorIndex = 0;
             editNote = null;
             isOpen = false;
         }
@@ -78,7 +79,7 @@
     function handleCancel() {
         if (isSubmitting) return;  // Prevent closing during submission
         content = '';
-        selectedColor = '#ffffff';  // TODO: later add theme default color
+        selectedColorIndex = 0;
         editNote = null;
         isOpen = false;
     }
@@ -119,17 +120,17 @@
                 <fieldset class="color-picker" disabled={isSubmitting}>
                     <legend>Background color</legend>
                     <div class="color-grid">
-                        {#each availableColors as color}
+                        {#each availableColors as color, index}
                             <button
                                 type="button"
                                 class="color-option"
-                                class:selected={selectedColor === color.value}
+                                class:selected={selectedColorIndex === index}
                                 style="background-color: {color.value};"
-                                onclick={() => selectedColor = color.value}
+                                onclick={() => selectedColorIndex = index}
                                 aria-label={color.name}
                                 title={color.name}
                             >
-                                {#if selectedColor === color.value}
+                                {#if selectedColorIndex === index}
                                     <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
                                         <path d="M13 4L6 11L3 8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                                     </svg>

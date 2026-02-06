@@ -61,7 +61,7 @@ export const AUTO_PAN = {
 
 export const COLOR_PALETTES = {
   light: [
-    { name: 'White', value: getCSSVariable('--color-theme-light-default') },
+    { name: 'Default', value: getCSSVariable('--color-theme-light-default') },  // White
     { name: 'Yellow', value: getCSSVariable('--color-theme-light-yellow') },
     { name: 'Orange', value: getCSSVariable('--color-theme-light-orange') },
     { name: 'Red', value: getCSSVariable('--color-theme-light-red') },
@@ -73,7 +73,7 @@ export const COLOR_PALETTES = {
     { name: 'Gray', value: getCSSVariable('--color-theme-light-gray') },
   ],
   dark: [
-    { name: 'Black', value: getCSSVariable('--color-theme-dark-default') },
+    { name: 'Default', value: getCSSVariable('--color-theme-dark-default') },  // Black
     { name: 'Yellow', value: getCSSVariable('--color-theme-dark-yellow') },
     { name: 'Orange', value: getCSSVariable('--color-theme-dark-orange') },
     { name: 'Red', value: getCSSVariable('--color-theme-dark-red') },

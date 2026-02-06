@@ -6,7 +6,7 @@ import type { Note } from '$lib/types';
 type HistoryAction =
     | { type: 'CREATE_NOTE'; noteId: number; noteData: Omit<Note, 'id'> }
     | { type: 'DELETE_NOTES'; noteIds: number[]; notesData: Note[] }
-    | { type: 'UPDATE_NOTE'; noteId: number; oldContent: string; newContent: string, oldColor: string, newColor: string }
+    | { type: 'UPDATE_NOTE'; noteId: number; oldContent: string; newContent: string, oldColor: number, newColor: number }
     | { type: 'MOVE_NOTES'; updates: Array<{ id: number; oldPos: { x: number; y: number }; newPos: { x: number; y: number } }> }
     | { type: 'RESIZE_NOTE'; noteId: number; oldSize: { width: number; height: number }; newSize: { width: number; height: number } };
 
@@ -119,14 +119,14 @@ async function performUndo(action: HistoryAction): Promise<void> {
                     pos_y: noteData.pos_y,
                     width: noteData.width,
                     height: noteData.height,
-                    bg_color: noteData.bg_color
+                    color_index: noteData.color_index
                 });  // Pass original ID to maintain consistency
             }
             break;
 
         case 'UPDATE_NOTE':
             // Restore old content
-            await updateNoteLocal(action.noteId, { content: action.oldContent, bg_color: action.oldColor });
+            await updateNoteLocal(action.noteId, { content: action.oldContent, color_index: action.oldColor });
             break;
 
         case 'MOVE_NOTES':
@@ -163,7 +163,7 @@ async function performRedo(action: HistoryAction): Promise<void> {
 
         case 'UPDATE_NOTE':
             // Apply new content
-            await updateNoteLocal(action.noteId, { content: action.newContent, bg_color: action.newColor });
+            await updateNoteLocal(action.noteId, { content: action.newContent, color_index: action.newColor });
             break;
 
         case 'MOVE_NOTES':

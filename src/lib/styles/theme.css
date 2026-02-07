@@ -21,15 +21,15 @@
     --shadow-xl: 0 8px 32px rgba(0, 0, 0, 0.2);
 
     /* Color theme note backgrounds */
-    --color-theme-light-red: #ff6868;
-    --color-theme-light-orange: #f4a446;
-    --color-theme-light-yellow: #e6e430;
-    --color-theme-light-green: #3fee36;
-    --color-theme-light-cyan: #36dfcd;
-    --color-theme-light-blue: #6982ff;
-    --color-theme-light-purple: #bc4aff;
-    --color-theme-light-pink: #ff5ad2;
-    --color-theme-light-gray: #dedede;
+    --color-theme-light-red: #ee8787;
+    --color-theme-light-orange: #e9b476;
+    --color-theme-light-yellow: #dcdb74;
+    --color-theme-light-green: #7ce476;
+    --color-theme-light-cyan: #7be1d7;
+    --color-theme-light-blue: #8792fc;
+    --color-theme-light-purple: #bf89de;
+    --color-theme-light-pink: #e999d3;
+    --color-theme-light-gray: #d7d7d7;
     --color-theme-light-default: #ffffff;
 
     /****** Defaults ******/
@@ -50,11 +50,11 @@
 }
 
 [data-theme='dark'] {
-    /****** Light mode ******/
+    /****** Dark mode ******/
     /* Colors */
     --color-primary: #64b5f6;
     --color-primary-hover: #42a5f5;
-    --color-primary-disabled: #ccc;
+    --color-primary-disabled: #1d1d1d;
     --color-secondary: #f0f0f0;
     --color-secondary-hover: #e0e0e0;
     --color-danger: #ef5350;
@@ -62,7 +62,7 @@
     --color-border: #ddd;
     --color-text: #fff;
     --color-text-muted: #a0a0a0;
-    --color-background: #0a0a0a;
+    --color-background: #252525;
 
     /* Shadows */
     --shadow-xs: 0 0 0 3px rgba(0, 122, 204, 0.1);
@@ -72,14 +72,14 @@
     --shadow-xl: 0 8px 32px rgba(0, 0, 0, 0.6);
 
     /* Color theme note backgrounds */
-    --color-theme-dark-red: #530e0e;
-    --color-theme-dark-orange: #563712;
-    --color-theme-dark-yellow: #53550c;
-    --color-theme-dark-green: #155112;
-    --color-theme-dark-cyan: #0d4f48;
-    --color-theme-dark-blue: #152159;
-    --color-theme-dark-purple: #3b1252;
-    --color-theme-dark-pink: #4f103e;
-    --color-theme-dark-gray: #404040;
-    --color-theme-dark-default: #1c1c1c;
+    --color-theme-dark-red: #5e3737;
+    --color-theme-dark-orange: #634a35;
+    --color-theme-dark-yellow: #5d5f3a;
+    --color-theme-dark-green: #365e3a;
+    --color-theme-dark-cyan: #335b5b;
+    --color-theme-dark-blue: #344060;
+    --color-theme-dark-purple: #4d3561;
+    --color-theme-dark-pink: #613b4f;
+    --color-theme-dark-gray: #454545;
+    --color-theme-dark-default: #212121;
 }

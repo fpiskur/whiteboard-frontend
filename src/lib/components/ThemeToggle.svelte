@@ -52,7 +52,7 @@
         border: 1px solid var(--color-border);
         border-radius: 8px;
 
-        color: var(--color-text);
+        color: var(--color-note-content-text);
         cursor: pointer;
 
         transition: all 0.2s ease;

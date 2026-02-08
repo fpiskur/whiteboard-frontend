@@ -186,7 +186,7 @@
         align-items: center;
         justify-content: center;
         box-shadow:
-            0 0 0 var(--border-width) var(--color-primary-disabled),
+            0 0 0 var(--border-width) var(--color-note-border),
             0 2px 8px rgba(0, 0, 0, 0.1);
         user-select: none;
         -webkit-user-select: none;
@@ -220,7 +220,7 @@
         word-wrap: break-word;
         scrollbar-width: auto;
         scrollbar-color: rgba(200, 200, 200, 0.3) transparent;
-        color: var(--color-text);
+        color: var(--color-note-content-text);
     }
 
     .resize-handle {

@@ -33,7 +33,7 @@ export function getNoteColor(colorKey: ColorKey): string {
 // For canvas drawing - read dynamically when needed
 export function getCanvasColors() {
     return {
-        grid: getCSSVar('--color-primary-disabled'),
+        grid: getCSSVar('--color-note-border'),
         selection: getCSSVar('--color-primary'),
         selectionFill: getCSSVar('--color-selection-fill'),
         background: getCSSVar('--color-background'),

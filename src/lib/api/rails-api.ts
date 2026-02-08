@@ -3,19 +3,6 @@ import type { NoteAPIResponse, Note, CreateNoteData, UpdateNoteData, ApiError } 
 
 const API_BASE = PUBLIC_API_URL;
 
-const COLOR_INDEX_MAP: Record<string, number> = {
-    default: 0,
-    yellow: 1,
-    orange: 2,
-    red: 3,
-    pink: 4,
-    purple: 5,
-    blue: 6,
-    cyan: 7,
-    green: 8,
-    gray: 9,
-};
-
 // Helper to normalize API response (because decimals are returned as string)
 function normalizeNote(apiNote: NoteAPIResponse): Note {
     return {

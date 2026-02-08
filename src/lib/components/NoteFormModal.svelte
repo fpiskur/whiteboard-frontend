@@ -1,7 +1,7 @@
 <script lang="ts">
     import type { Note, ColorKey } from '$lib/types';
-    import { getColorPalette, COLOR_KEYS } from '$lib/state/constants';
-    import { themeState } from '$lib/state/themeState.svelte';
+    import { COLOR_KEYS, COLOR_INFO } from '$lib/state/constants';
+    import { getNoteColor } from '$lib/utils/theme-utils';
     import Spinner from './Spinner.svelte';
 
     let {
@@ -18,9 +18,6 @@
 
     let content = $state('');
     let selectedColorKey = $state<ColorKey>('default');
-
-    // Get available colors
-    const currentPalette = $derived(getColorPalette(themeState.isDark ? 'dark' : 'light'));
 
     // Sync content and color when editing
     $effect(() => {
@@ -83,6 +80,11 @@
         editNote = null;
         isOpen = false;
     }
+
+    // Get color value dynamically for each button
+    function getColorValue(colorKey: ColorKey): string {
+        return getNoteColor(colorKey);
+    }
 </script>
 
 {#if isOpen}
@@ -121,15 +123,14 @@
                     <legend>Background color</legend>
                     <div class="color-grid">
                         {#each COLOR_KEYS as colorKey}
-                            {@const colorData = currentPalette[colorKey]}
                             <button
                                 type="button"
                                 class="color-option"
                                 class:selected={selectedColorKey === colorKey}
-                                style="background-color: {colorData.value};"
+                                style="background-color: {getColorValue(colorKey)};"
                                 onclick={() => selectedColorKey = colorKey}
-                                aria-label={colorData.name}
-                                title={colorData.name}
+                                aria-label={COLOR_INFO[colorKey]}
+                                title={COLOR_INFO[colorKey]}
                             >
                                 {#if selectedColorKey === colorKey}
                                     <svg width="16" height="16" viewBox="0 0 16 16" fill="none">

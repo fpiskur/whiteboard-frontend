@@ -60,31 +60,17 @@ export const AUTO_PAN = {
   MIN_SPEED: 1      // px per frame when just outsize edge
 } as const;
 
-export const COLOR_PALETTES = {
-  light: {
-    default: { name: 'Default', value: getCSSVariable('--color-theme-light-default') },  // White
-    yellow: { name: 'Yellow', value: getCSSVariable('--color-theme-light-yellow') },
-    orange: { name: 'Orange', value: getCSSVariable('--color-theme-light-orange') },
-    red: { name: 'Red', value: getCSSVariable('--color-theme-light-red') },
-    pink: { name: 'Pink', value: getCSSVariable('--color-theme-light-pink') },
-    purple: { name: 'Purple', value: getCSSVariable('--color-theme-light-purple') },
-    blue: { name: 'Blue', value: getCSSVariable('--color-theme-light-blue') },
-    cyan: { name: 'Cyan', value: getCSSVariable('--color-theme-light-cyan') },
-    green: { name: 'Green', value: getCSSVariable('--color-theme-light-green') },
-    gray: { name: 'Gray', value: getCSSVariable('--color-theme-light-gray') },
-  },
-  dark: {
-    default: { name: 'Default', value: getCSSVariable('--color-theme-dark-default') },  // Black
-    yellow: { name: 'Yellow', value: getCSSVariable('--color-theme-dark-yellow') },
-    orange: { name: 'Orange', value: getCSSVariable('--color-theme-dark-orange') },
-    red: { name: 'Red', value: getCSSVariable('--color-theme-dark-red') },
-    pink: { name: 'Pink', value: getCSSVariable('--color-theme-dark-pink') },
-    purple: { name: 'Purple', value: getCSSVariable('--color-theme-dark-purple') },
-    blue: { name: 'Blue', value: getCSSVariable('--color-theme-dark-blue') },
-    cyan: { name: 'Cyan', value: getCSSVariable('--color-theme-dark-cyan') },
-    green: { name: 'Green', value: getCSSVariable('--color-theme-dark-green') },
-    gray: { name: 'Gray', value: getCSSVariable('--color-theme-dark-gray') },
-  }
+export const COLOR_INFO = {
+  default: 'Default',
+  yellow: 'Yellow',
+  orange: 'Orange',
+  red: 'Red',
+  pink: 'Pink',
+  purple: 'Purple',
+  blue: 'Blue',
+  cyan: 'Cyan',
+  green: 'Green',
+  gray: 'Gray',
 } as const;
 
 // For iterating in UI (color picker), maintain display order
@@ -100,7 +86,3 @@ export const COLOR_KEYS: ColorKey[] = [
   'green',
   'gray'
 ]
-
-export function getColorPalette(theme: 'light' | 'dark' = 'light') {
-  return COLOR_PALETTES[theme];
-}

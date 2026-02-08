@@ -33,6 +33,8 @@
     --color-theme-light-default: #ffffff;
 
     /****** Defaults ******/
+    --color-selection-fill: rgba(0, 122, 204, 0.1);
+
     /* Spacing */
     --spacing-xs: 8px;
     --spacing-sm: 12px;

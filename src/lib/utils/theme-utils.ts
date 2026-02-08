@@ -35,7 +35,7 @@ export function getCanvasColors() {
     return {
         grid: getCSSVar('--color-primary-disabled'),
         selection: getCSSVar('--color-primary'),
-        selectionFill: `rgba(0, 122, 204, ${0.1})`,  // TODO: make selectionFill a CSS var too
+        selectionFill: getCSSVar('--color-selection-fill'),
         background: getCSSVar('--color-background'),
     };
 }

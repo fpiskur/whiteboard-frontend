@@ -1,4 +1,3 @@
-import { getCSSVariable } from '$lib/utils/theme-utils';
 import type { ColorKey } from '$lib/types';
 
 export const ZOOM_CONSTRAINTS = {
@@ -26,13 +25,6 @@ export const INTERACTION = {
     MAX_SPEED: 15,
     MIN_SPEED: 1
   }
-} as const;
-
-export const COLORS = {
-  NOTE_BORDER: getCSSVariable('--color-primary-disabled'),
-  SELECTION: getCSSVariable('--color-primary'),
-  GRID: getCSSVariable('--color-primary-disabled'),
-  SELECTION_FILL: 'rgba(0, 122, 204, 0.1)'
 } as const;
 
 export const BORDER = {

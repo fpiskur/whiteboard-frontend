@@ -4,7 +4,7 @@
     import { notesState } from '$lib/state/notesState.svelte';
     import { selectionState, keyboardState } from '$lib/state/selectionState.svelte';
     import { mouseState, dragState, clickState, panState } from '$lib/state/interactionState.svelte';
-    import { COLORS, BORDER, INTERACTION, RESIZE_HANDLE } from '$lib/state/constants';
+    import { BORDER, INTERACTION, RESIZE_HANDLE } from '$lib/state/constants';
     import { screenToWorld } from '$lib/utils/canvas-utils';
     import { getViewportRect, setMouseDownPosition } from '$lib/utils/viewport-utils';
     import { getNoteColor } from '$lib/utils/theme-utils';
@@ -37,13 +37,6 @@
         camera.scale >=1
             ? BORDER.BASE_SELECTED_PX
             : Math.max(BORDER.BASE_SELECTED_PX, Math.round(BORDER.TARGET_SELECTED_PX / camera.scale))
-    );
-
-    // Dynamic box-shadow based on selection state
-    const boxShadow = $derived(
-        isSelected
-            ? `0 0 0 ${shadowWidthPx}px ${COLORS.SELECTION}, 0 2px 8px rgba(0,0,0,0.1)`
-            : `0 0 0 ${borderWidthPx}px ${COLORS.NOTE_BORDER}, 0 2px 8px rgba(0,0,0,0.1)`
     );
 
     const backgroundColor = $derived(getNoteColor(note.color_index));
@@ -163,10 +156,11 @@
     style="
         --tx: {note.pos_x}px;
         --ty: {note.pos_y}px;
+        --border-width: {borderWidthPx}px;
+        --shadow-width: {shadowWidthPx}px;
         width: {note.width}px;
         height: {note.height}px;
         background-color: {backgroundColor};
-        box-shadow: {boxShadow};
     "
     onmousedown={handleMouseDown}
     ondblclick={handleDoubleClick}
@@ -191,11 +185,20 @@
         display: flex;
         align-items: center;
         justify-content: center;
+        box-shadow:
+            0 0 0 var(--border-width) var(--color-primary-disabled),
+            0 2px 8px rgba(0, 0, 0, 0.1);
         user-select: none;
         -webkit-user-select: none;
         transform: translate(var(--tx), var(--ty));
         will-change: transform;
         pointer-events: auto;
+    }
+
+    .note.selected {
+        box-shadow: 
+            0 0 0 var(--shadow-width) var(--color-primary),
+            0 4px 12px rgba(0, 0, 0, 0.15);
     }
 
     /* Remove focus outline for mouse/pointer interactions */

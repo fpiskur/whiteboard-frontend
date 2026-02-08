@@ -1,8 +1,9 @@
 <script lang="ts">
     import { onMount } from 'svelte';
     import { camera, cameraRender } from '$lib/state/cameraState.svelte';
+    import { themeState } from '$lib/state/themeState.svelte';
     import { getGridSize, getGridOffset } from '$lib/utils/grid-utils';
-    import { COLORS } from '$lib/state/constants';
+    import { getCanvasColors } from '$lib/utils/theme-utils';
 
     let canvasEl: HTMLCanvasElement;
     let ctx: CanvasRenderingContext2D;
@@ -26,12 +27,15 @@
         return () => resizeObserver.disconnect();
     });
 
-    // Reactive drawing when camera changes or render flag set
+    // Reactive drawing when camera changes, theme changes, or render flag set
     $effect(() => {
         if (!ctx || !cameraRender.needsGridRender) return;
 
+        // Get fresh colors (will re-run when theme changes because themeState.isDark is tracked)
+        const colors = getCanvasColors();
+
         ctx.clearRect(0, 0, width, height);
-        ctx.strokeStyle = COLORS.GRID;
+        ctx.strokeStyle = colors.grid;
         ctx.lineWidth = 1;
 
         const gridSize = getGridSize(camera.scale);
@@ -56,6 +60,17 @@
         }
 
         cameraRender.needsGridRender = false;
+    });
+
+    // Separate effect to trigger re-render when theme changes
+    $effect(() => {
+        // Track theme changes
+        themeState.isDark;
+
+        // Request re-render when theme changes
+        if (ctx) {
+            cameraRender.needsGridRender = true;
+        }
     });
 </script>
 

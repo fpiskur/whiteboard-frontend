@@ -2,7 +2,8 @@
     import { onMount } from 'svelte';
     import { camera, cameraRender } from '$lib/state/cameraState.svelte';
     import { selectionState } from '$lib/state/selectionState.svelte';
-    import { COLORS } from '$lib/state/constants';
+    import { themeState } from '$lib/state/themeState.svelte';
+    import { getCanvasColors } from '$lib/utils/theme-utils';
 
     let canvasEl: HTMLCanvasElement;
     let ctx: CanvasRenderingContext2D;
@@ -26,9 +27,12 @@
         return () => resizeObserver.disconnect();
     });
 
-    // Reactive drawing when selection box changes
+    // Reactive drawing when selection box changes or theme changes
     $effect(() => {
         if (!ctx || !cameraRender.needsRender) return;
+
+        // Get fresh colors (will re-run when theme changes)
+        const colors = getCanvasColors();
 
         ctx.clearRect(0, 0, width, height);
 
@@ -54,18 +58,29 @@
             const h = sy2 - sy1;
 
             ctx.save();
-            ctx.strokeStyle = COLORS.SELECTION;
+            ctx.strokeStyle = colors.selection;
             ctx.lineWidth = 1;
             ctx.setLineDash([3, 3]);
             ctx.strokeRect(x, y, w, h);
             ctx.setLineDash([]);
-            ctx.fillStyle = COLORS.SELECTION_FILL;
+            ctx.fillStyle = colors.selectionFill;
             ctx.fillRect(x, y, w, h);
             ctx.restore();
         }
 
         cameraRender.needsRender = false;
     });
+
+    // Separate effect to trigger re-render when theme changes
+    $effect(() => {
+        // Trach theme changes
+        themeState.isDark;
+
+        // Request re-render when theme changes
+        if (ctx) {
+            cameraRender.needsRender = true;
+        }
+    })
 </script>
 
 <canvas bind:this={canvasEl} class="overlay-canvas"></canvas>

@@ -1,14 +1,14 @@
 import { themeState } from '$lib/state/themeState.svelte';
 import type { ColorKey } from '$lib/types';
 
-export function getCSSVariable(name: string): string {
+export function getCSSVar(varName: string): string {
     if (typeof document === 'undefined') return '';  // SSR safety
     return getComputedStyle(document.documentElement)
-        .getPropertyValue(name)
+        .getPropertyValue(varName)
         .trim();
 }
 
-// Map color keys to their SCC variable names
+// Map color keys to their CSS variable names
 const COLOR_VAR_MAP: Record<ColorKey, { light: string; dark: string }> = {
     default: { light: '--color-theme-light-default', dark: '--color-theme-dark-default' },
     yellow:  { light: '--color-theme-light-yellow',  dark: '--color-theme-dark-yellow' },
@@ -25,12 +25,17 @@ const COLOR_VAR_MAP: Record<ColorKey, { light: string; dark: string }> = {
 export function getNoteColor(colorKey: ColorKey): string {
     const theme = themeState.isDark ? 'dark' : 'light';
     const varName = COLOR_VAR_MAP[colorKey]?.[theme] || COLOR_VAR_MAP.default[theme];
+    const value = getCSSVar(varName);
 
-    const value = getComputedStyle(document.documentElement)
-        .getPropertyValue(varName)
-        .trim();
+    return value || getCSSVar(COLOR_VAR_MAP.default[theme]);
+}
 
-    return value || getComputedStyle(document.documentElement)
-        .getPropertyValue(COLOR_VAR_MAP.default[theme])
-        .trim();
+// For canvas drawing - read dynamically when needed
+export function getCanvasColors() {
+    return {
+        grid: getCSSVar('--color-primary-disabled'),
+        selection: getCSSVar('--color-primary'),
+        selectionFill: `rgba(0, 122, 204, ${0.1})`,  // TODO: make selectionFill a CSS var too
+        background: getCSSVar('--color-background'),
+    };
 }

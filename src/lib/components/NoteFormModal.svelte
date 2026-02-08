@@ -1,6 +1,6 @@
 <script lang="ts">
-    import type { Note } from '$lib/types';
-    import { getColorPalette } from '$lib/state/constants';
+    import type { Note, ColorKey } from '$lib/types';
+    import { getColorPalette, COLOR_KEYS } from '$lib/state/constants';
     import { themeState } from '$lib/state/themeState.svelte';
     import Spinner from './Spinner.svelte';
 
@@ -12,24 +12,24 @@
     }: {
         isOpen: boolean;
         editNote?: Note | null;
-        onSubmit: (content: string, colorIndex: number, noteId?: number) => Promise<void>;
+        onSubmit: (content: string, colorKey: ColorKey, noteId?: number) => Promise<void>;
         isSubmitting?: boolean;
     } = $props();
 
     let content = $state('');
-    let selectedColorIndex = $state(0);
+    let selectedColorKey = $state<ColorKey>('default');
 
     // Get available colors
-    const availableColors = $derived(getColorPalette(themeState.isDark ? 'dark' : 'light'));
+    const currentPalette = $derived(getColorPalette(themeState.isDark ? 'dark' : 'light'));
 
     // Sync content and color when editing
     $effect(() => {
         if (editNote) {
             content = editNote.content;
-            selectedColorIndex = editNote.color_index;
+            selectedColorKey = editNote.color_index;
         } else {
             content = '';
-            selectedColorIndex = 0;
+            selectedColorKey = 'default';
         }
     });
 
@@ -68,9 +68,9 @@
     async function handleSubmit(e: Event) {
         e.preventDefault();
         if (content.trim()) {
-            await onSubmit(content.trim(), selectedColorIndex, editNote?.id);
+            await onSubmit(content.trim(), selectedColorKey, editNote?.id);
             content = ''; // Reset form
-            selectedColorIndex = 0;
+            selectedColorKey = 'default';
             editNote = null;
             isOpen = false;
         }
@@ -79,7 +79,7 @@
     function handleCancel() {
         if (isSubmitting) return;  // Prevent closing during submission
         content = '';
-        selectedColorIndex = 0;
+        selectedColorKey = 'default';
         editNote = null;
         isOpen = false;
     }
@@ -120,17 +120,18 @@
                 <fieldset class="color-picker" disabled={isSubmitting}>
                     <legend>Background color</legend>
                     <div class="color-grid">
-                        {#each availableColors as color, index}
+                        {#each COLOR_KEYS as colorKey}
+                            {@const colorData = currentPalette[colorKey]}
                             <button
                                 type="button"
                                 class="color-option"
-                                class:selected={selectedColorIndex === index}
-                                style="background-color: {color.value};"
-                                onclick={() => selectedColorIndex = index}
-                                aria-label={color.name}
-                                title={color.name}
+                                class:selected={selectedColorKey === colorKey}
+                                style="background-color: {colorData.value};"
+                                onclick={() => selectedColorKey = colorKey}
+                                aria-label={colorData.name}
+                                title={colorData.name}
                             >
-                                {#if selectedColorIndex === index}
+                                {#if selectedColorKey === colorKey}
                                     <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
                                         <path d="M13 4L6 11L3 8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                                     </svg>

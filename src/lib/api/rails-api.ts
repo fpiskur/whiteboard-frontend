@@ -1,5 +1,4 @@
 import { PUBLIC_API_URL } from '$env/static/public';
-import { COLOR_PALETTES } from '$lib/state/constants';
 import type { NoteAPIResponse, Note, CreateNoteData, UpdateNoteData, ApiError } from '$lib/types';
 
 const API_BASE = PUBLIC_API_URL;
@@ -25,7 +24,6 @@ function normalizeNote(apiNote: NoteAPIResponse): Note {
         pos_y: Number(apiNote.pos_y),
         width: Number(apiNote.width),
         height: Number(apiNote.height),
-        color_index: COLOR_INDEX_MAP[apiNote.color_index] ?? 0
     };
 }
 

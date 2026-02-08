@@ -18,7 +18,7 @@
     import NoteFormModal from './NoteFormModal.svelte';
     import ConfirmModal from './ConfirmModal.svelte';
     import Spinner from './Spinner.svelte';
-    import type { Note } from '$lib/types';
+    import type { Note, ColorKey } from '$lib/types';
 
     // NOTE: Temporary leak detection (Chrome only)
     // ######################################
@@ -584,7 +584,7 @@
         }
     }
 
-    async function handleSubmitNote(content: string, colorIndex: number, noteId?: number): Promise<void> {
+    async function handleSubmitNote(content: string, colorKey: ColorKey, noteId?: number): Promise<void> {
         isSubmittingNote = true;
         try {
             if (noteId !== undefined) {
@@ -596,17 +596,17 @@
 
                 const oldContent = note.content;
                 const oldColor = note.color_index;
-                await updateNoteLocal(noteId, { content, color_index: colorIndex });
+                await updateNoteLocal(noteId, { content, color_index: colorKey });
 
                 // Record history after successful update
-                if (oldContent !== content || oldColor !== colorIndex) {
+                if (oldContent !== content || oldColor !== colorKey) {
                     historyState.recordAction({
                         type: 'UPDATE_NOTE',
                         noteId,
                         oldContent,
                         newContent: content,
                         oldColor,
-                        newColor: colorIndex
+                        newColor: colorKey
                     });
                 }
 
@@ -636,7 +636,7 @@
                     pos_y: position.y,
                     width: noteWidth,
                     height: noteHeight,
-                    color_index: colorIndex
+                    color_index: colorKey
                 }
 
                 await createNoteLocal(noteData);

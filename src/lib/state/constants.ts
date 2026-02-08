@@ -1,4 +1,5 @@
 import { getCSSVariable } from '$lib/utils/theme-utils';
+import type { ColorKey } from '$lib/types';
 
 export const ZOOM_CONSTRAINTS = {
     MIN_SCALE: 0.1,
@@ -60,31 +61,45 @@ export const AUTO_PAN = {
 } as const;
 
 export const COLOR_PALETTES = {
-  light: [
-    { name: 'Default', value: getCSSVariable('--color-theme-light-default') },  // White
-    { name: 'Yellow', value: getCSSVariable('--color-theme-light-yellow') },
-    { name: 'Orange', value: getCSSVariable('--color-theme-light-orange') },
-    { name: 'Red', value: getCSSVariable('--color-theme-light-red') },
-    { name: 'Pink', value: getCSSVariable('--color-theme-light-pink') },
-    { name: 'Purple', value: getCSSVariable('--color-theme-light-purple') },
-    { name: 'Blue', value: getCSSVariable('--color-theme-light-blue') },
-    { name: 'Cyan', value: getCSSVariable('--color-theme-light-cyan') },
-    { name: 'Green', value: getCSSVariable('--color-theme-light-green') },
-    { name: 'Gray', value: getCSSVariable('--color-theme-light-gray') },
-  ],
-  dark: [
-    { name: 'Default', value: getCSSVariable('--color-theme-dark-default') },  // Black
-    { name: 'Yellow', value: getCSSVariable('--color-theme-dark-yellow') },
-    { name: 'Orange', value: getCSSVariable('--color-theme-dark-orange') },
-    { name: 'Red', value: getCSSVariable('--color-theme-dark-red') },
-    { name: 'Pink', value: getCSSVariable('--color-theme-dark-pink') },
-    { name: 'Purple', value: getCSSVariable('--color-theme-dark-purple') },
-    { name: 'Blue', value: getCSSVariable('--color-theme-dark-blue') },
-    { name: 'Cyan', value: getCSSVariable('--color-theme-dark-cyan') },
-    { name: 'Green', value: getCSSVariable('--color-theme-dark-green') },
-    { name: 'Gray', value: getCSSVariable('--color-theme-dark-gray') },
-  ]
+  light: {
+    default: { name: 'Default', value: getCSSVariable('--color-theme-light-default') },  // White
+    yellow: { name: 'Yellow', value: getCSSVariable('--color-theme-light-yellow') },
+    orange: { name: 'Orange', value: getCSSVariable('--color-theme-light-orange') },
+    red: { name: 'Red', value: getCSSVariable('--color-theme-light-red') },
+    pink: { name: 'Pink', value: getCSSVariable('--color-theme-light-pink') },
+    purple: { name: 'Purple', value: getCSSVariable('--color-theme-light-purple') },
+    blue: { name: 'Blue', value: getCSSVariable('--color-theme-light-blue') },
+    cyan: { name: 'Cyan', value: getCSSVariable('--color-theme-light-cyan') },
+    green: { name: 'Green', value: getCSSVariable('--color-theme-light-green') },
+    gray: { name: 'Gray', value: getCSSVariable('--color-theme-light-gray') },
+  },
+  dark: {
+    default: { name: 'Default', value: getCSSVariable('--color-theme-dark-default') },  // Black
+    yellow: { name: 'Yellow', value: getCSSVariable('--color-theme-dark-yellow') },
+    orange: { name: 'Orange', value: getCSSVariable('--color-theme-dark-orange') },
+    red: { name: 'Red', value: getCSSVariable('--color-theme-dark-red') },
+    pink: { name: 'Pink', value: getCSSVariable('--color-theme-dark-pink') },
+    purple: { name: 'Purple', value: getCSSVariable('--color-theme-dark-purple') },
+    blue: { name: 'Blue', value: getCSSVariable('--color-theme-dark-blue') },
+    cyan: { name: 'Cyan', value: getCSSVariable('--color-theme-dark-cyan') },
+    green: { name: 'Green', value: getCSSVariable('--color-theme-dark-green') },
+    gray: { name: 'Gray', value: getCSSVariable('--color-theme-dark-gray') },
+  }
 } as const;
+
+// For iterating in UI (color picker), maintain display order
+export const COLOR_KEYS: ColorKey[] = [
+  'default',
+  'yellow',
+  'orange',
+  'red',
+  'pink',
+  'purple',
+  'blue',
+  'cyan',
+  'green',
+  'gray'
+]
 
 export function getColorPalette(theme: 'light' | 'dark' = 'light') {
   return COLOR_PALETTES[theme];

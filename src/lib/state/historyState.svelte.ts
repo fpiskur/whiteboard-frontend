@@ -1,12 +1,12 @@
 import { createNoteLocal, deleteNotesLocal, updateNoteLocal, batchUpdateNotesLocal } from './notesState.svelte';
 import { toastState } from './toastState.svelte';
-import type { Note } from '$lib/types';
+import type { Note, ColorKey } from '$lib/types';
 
 // Action types
 type HistoryAction =
     | { type: 'CREATE_NOTE'; noteId: number; noteData: Omit<Note, 'id'> }
     | { type: 'DELETE_NOTES'; noteIds: number[]; notesData: Note[] }
-    | { type: 'UPDATE_NOTE'; noteId: number; oldContent: string; newContent: string, oldColor: number, newColor: number }
+    | { type: 'UPDATE_NOTE'; noteId: number; oldContent: string; newContent: string, oldColor: ColorKey, newColor: ColorKey }
     | { type: 'MOVE_NOTES'; updates: Array<{ id: number; oldPos: { x: number; y: number }; newPos: { x: number; y: number } }> }
     | { type: 'RESIZE_NOTE'; noteId: number; oldSize: { width: number; height: number }; newSize: { width: number; height: number } };
 

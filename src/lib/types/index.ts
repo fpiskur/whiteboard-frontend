@@ -1,3 +1,16 @@
+// ColorKey type must match the Rails enum names
+export type ColorKey =
+    | 'default'
+    | 'yellow'
+    | 'orange'
+    | 'red'
+    | 'pink'
+    | 'purple'
+    | 'blue'
+    | 'cyan'
+    | 'green'
+    | 'gray'
+
 export interface NoteAPIResponse {
     id: number,
     pos_x: string;
@@ -5,7 +18,7 @@ export interface NoteAPIResponse {
     width: string;
     height: string;
     content: string;
-    color_index: string;  // Rails enum string: 'default' | 'blue' | ...
+    color_index: ColorKey;
     created_at?: string;
     updated_at?: string;
 }
@@ -17,7 +30,7 @@ export interface Note {
     width: number;
     height: number;
     content: string;
-    color_index: number;
+    color_index: ColorKey;
     created_at?: string;
     updated_at?: string;
 }
@@ -28,7 +41,7 @@ export interface CreateNoteData {
     width?: number;
     height?: number;
     content: string;
-    color_index?: number;
+    color_index?: ColorKey;
 }
 
 export interface UpdateNoteData {
@@ -37,7 +50,7 @@ export interface UpdateNoteData {
     width?: number;
     height?: number;
     content?: string;
-    color_index?: number;
+    color_index?: ColorKey;
 }
 
 export interface ApiError {

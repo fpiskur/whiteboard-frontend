@@ -18,7 +18,11 @@
 
     let { note, onEdit, onResizeStart, isResizing }: Props = $props();
 
-    const isSelected = $derived(selectionState.selectedIds.has(note.id));
+    const isSelected = $derived(
+        selectionState.box.isBoxSelecting
+        ? selectionState.previewIds.has(note.id)  // Use preview while dragging
+        : selectionState.selectedIds.has(note.id)  // Use actual selection otherwise
+    );
 
     // Determine if resize handle should be large
     const isLargeHandle = $derived(camera.scale < RESIZE_HANDLE.SCALE_BREAKPOINT);

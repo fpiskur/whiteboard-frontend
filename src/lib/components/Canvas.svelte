@@ -365,6 +365,9 @@
                 selectionState.selectedIds.clear();
             }
 
+            // Clear any preview
+            selectionState.previewIds.clear();
+
             const worldPos = screenToWorld(mouseState.pos.x, mouseState.pos.y, camera);
             selectionState.box.boxStart = { x: worldPos.x, y: worldPos.y };
             selectionState.box.boxEnd = { x: worldPos.x, y: worldPos.y };
@@ -428,6 +431,10 @@
         if (selectionState.box.isBoxSelecting && selectionState.box.boxStart) {
             const worldPos = screenToWorld(mouseState.pos.x, mouseState.pos.y, camera);
             selectionState.box.boxEnd = { x: worldPos.x, y: worldPos.y };
+
+            // Calculate preview selection while dragging
+            updatePreviewSelection();
+
             cameraRender.needsRender = true;
         }
 
@@ -544,6 +551,10 @@
             selectionState.box.isBoxSelecting = false;
             selectionState.box.boxStart = null;
             selectionState.box.boxEnd = null;
+
+            // Clear preview on mouseup
+            selectionState.previewIds.clear();
+
             cameraRender.needsRender = true;
         }
 
@@ -581,6 +592,36 @@
             // No modifier: Replace selection
             selectionState.selectedIds.clear();
             notesInBox.forEach(id => selectionState.selectedIds.add(id));
+        }
+    }
+
+    // Update preview selection while box selecting
+    function updatePreviewSelection(): void {
+        if (!selectionState.box.boxStart || !selectionState.box.boxEnd) return;
+
+        const notesInBox = getNotesInBox(
+            notesState.items,
+            selectionState.box.boxStart,
+            selectionState.box.boxEnd
+        );
+
+        // Calculate what the selection will be based on modifier keys
+        selectionState.previewIds.clear();
+
+        if (keyboardState.ctrl) {
+            // Ctrl: Preview = current selection + notes in box (additive)
+            selectionState.selectedIds.forEach(id => selectionState.previewIds.add(id));
+            notesInBox.forEach(id => selectionState.previewIds.add(id));
+        } else if (keyboardState.shift) {
+            // Shift: Preview = current selection - notes in box (subtractive)
+            selectionState.selectedIds.forEach(id => {
+                if (!notesInBox.includes(id)) {
+                    selectionState.previewIds.add(id);
+                }
+            });
+        } else {
+            // No modifier: Preview = only notes in box (replace)
+            notesInBox.forEach(id => selectionState.previewIds.add(id));
         }
     }
 

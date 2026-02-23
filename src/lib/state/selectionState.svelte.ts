@@ -9,6 +9,7 @@ export type SelectionBox = {
 export type SelectionState = {
     selectedIds: SvelteSet<number>;
     box: SelectionBox;
+    previewIds: SvelteSet<number>;
 };
 
 export const selectionState = $state<SelectionState>({
@@ -17,7 +18,8 @@ export const selectionState = $state<SelectionState>({
         isBoxSelecting: false,
         boxStart: null,
         boxEnd: null
-    }
+    },
+    previewIds: new SvelteSet()
 });
 
 export type KeyboardState = {

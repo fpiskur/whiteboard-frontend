@@ -231,12 +231,21 @@
         if (!e[primaryModifierFlag]) return;
         e.preventDefault();
 
+        // Zoom factor: 0.9 for zoom out, 1.1 for zoom in
+        const factor = e.deltaY > 0 ? 1/1.1 : 1.1;
+        const targetScale = camera.scale * factor;
+
+        // Check if this zoom would be clamped (i.e., already at limit)
+        const newScale = clampScale(targetScale);
+
+        // Don't do anything if we're trying to zoom past the limit
+        if (targetScale !== newScale) {
+            // Would be clamped - we're at a limit, so ignore this scroll
+            return;
+        }
+
         // Get cursor position in world coordinates before zoom
         const pos = screenToWorld(e.clientX, e.clientY, camera);
-
-        // Zoom factor: 0.9 for zoom out, 1.1 for zoom in
-        const factor = e.deltaY > 0 ? 0.9 : 1.1;
-        const newScale = clampScale(camera.scale * factor);
 
         // Update camera to zoom toward cursor position
         camera.scale = newScale;

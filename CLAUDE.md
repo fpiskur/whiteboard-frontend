@@ -9,7 +9,7 @@
 - Include JSDoc comments for all public functions.
 
 # Task & Workflow Rules
-- **Testing:** Always write tests using Vitest before implementing major features.
+- **Testing:** Always write tests using Vitest and Playwright before implementing major features.
 - **File Edits:** Only edit files in the `/src` and `/tests` directories unless specifically instructed otherwise.
 - **Constraints:** Never delete or modify files in the `node_modules` or `.git` folders.
 - **Verification:** Before claiming a task is complete, run the linter and test suite.
